@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react'; // 1. Imported useCallback
 import api from '../services/api';
 import { useAuth } from './AuthContext.jsx';
 
@@ -9,7 +9,8 @@ export const NotificationProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const fetchNotifications = async () => {
+  // 2. Wrapped fetchNotifications in useCallback
+  const fetchNotifications = useCallback(async () => {
     if (!user) {
       setNotifications([]);
       setLoading(false);
@@ -23,27 +24,23 @@ export const NotificationProvider = ({ children }) => {
       console.error("Failed to fetch notifications", err);
     }
     setLoading(false);
-  };
+  }, [user]); // It depends on 'user', so 'user' is a dependency
 
   useEffect(() => {
     fetchNotifications();
-  }, [user]);
+  }, [fetchNotifications]); // 3. The effect now correctly depends on the memoized function
 
-  // --- NEW: Function to mark notifications as read ---
-  const markAllAsRead = async () => {
-    // Only run if there are unread notifications
+  // 4. Wrapped markAllAsRead in useCallback
+  const markAllAsRead = useCallback(async () => {
     if (notifications.some(n => !n.isRead)) {
         try {
-            // Update the local state immediately for a fast UI response
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-            // Then, tell the backend to update the database
             await api.post('/notifications/mark-read');
         } catch (err) {
             console.error("Failed to mark notifications as read", err);
-            // If the API call fails, we could revert the local state change here
         }
     }
-  };
+  }, [notifications]); // It depends on 'notifications', so 'notifications' is a dependency
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -52,7 +49,7 @@ export const NotificationProvider = ({ children }) => {
     loading,
     unreadCount,
     refreshNotifications: fetchNotifications,
-    markAllAsRead, // <-- Expose the new function
+    markAllAsRead,
   };
 
   return (

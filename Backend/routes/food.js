@@ -8,6 +8,7 @@ const {
   getMyClaimedListings,
   respondToDelivery,
   confirmPickup,
+  getMyListings // <-- 1. IMPORT THE NEW FUNCTION
 } = require('../controllers/foodController');
 
 // @route   GET /api/food
@@ -39,5 +40,12 @@ router.put('/delivery-response/:claimId', auth, respondToDelivery);
 // @desc    Confirm a student has picked up the food with OTP
 // @access  Private
 router.put('/confirm-pickup/:claimId', auth, confirmPickup);
+
+// --- 2. ADD THE NEW ROUTE FOR THE CANTEEN DASHBOARD ---
+// @route   GET /api/food/my-listings
+// @desc    Get all listings for the logged-in canteen organizer
+// @access  Private
+router.get('/my-listings', auth, getMyListings);
+
 
 module.exports = router;

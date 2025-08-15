@@ -23,6 +23,11 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  // --- NEW FIELD: Added to store delivery rewards ---
+  cashbackPoints: {
+    type: Number,
+    default: 0,
+  },
   level: { type: Number, default: 1 },
   title: { type: String, default: 'Food Saver' },
   badges: { type: [String], default: [] },
@@ -39,5 +44,4 @@ const UserSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// --- FIX: This is the standard and correct way to export a Mongoose model ---
 module.exports = mongoose.model('User', UserSchema);

@@ -2,32 +2,31 @@ const cron = require('node-cron');
 const FoodListing = require('../models/FoodListing');
 
 const startScheduler = () => {
-  // This task will run every 5 minutes
+  // This task will run every 5 minute to check for expired food
   cron.schedule('*/5 * * * *', async () => {
-    console.log('Running a job every 5 minutes to check for expired food...');
+    console.log('Running a job every minute to check for expired food...');
     
     try {
-      // Calculate the time 10 minutes ago
-      const tenMinutesAgo = new Date(new Date().getTime() - 10 * 60 * 1000);
+      const now = new Date();
 
-      // Find all food listings that expired more than 10 minutes ago
-      const expiredListings = await FoodListing.find({
-        expiresAt: { $lt: tenMinutesAgo }
-      });
+      // --- FIX: Update items instead of deleting them ---
+      // 1. Find all food listings that are still 'available' but have passed their expiry time.
+      const result = await FoodListing.updateMany(
+        { 
+          expiresAt: { $lt: now },
+          status: 'available' 
+        },
+        // 2. Set their status to 'expired'.
+        { $set: { status: 'expired' } }
+      );
 
-      if (expiredListings.length > 0) {
-        const idsToDelete = expiredListings.map(item => item._id);
-        console.log(`Found ${idsToDelete.length} expired items to delete.`);
-        
-        // Delete the expired items from the database
-        await FoodListing.deleteMany({ _id: { $in: idsToDelete } });
-        
-        console.log('Successfully deleted expired items.');
+      if (result.modifiedCount > 0) {
+        console.log(`Successfully marked ${result.modifiedCount} items as expired.`);
       } else {
-        console.log('No expired items found to delete.');
+        console.log('No available items have expired in the last 5 minutes.');
       }
     } catch (error) {
-      console.error('Error during scheduled deletion of expired items:', error);
+      console.error('Error during scheduled update of expired items:', error);
     }
   });
 };

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import api, { createBooking } from '../services/api';
+import api from '../services/api';
 import { useAuth } from './AuthContext.jsx';
 import { useNotifications } from './NotificationContext.jsx';
 
@@ -11,6 +11,8 @@ export const FoodProvider = ({ children }) => {
   const [ngoBookings, setNgoBookings] = useState([]);
   const [campusEvents, setCampusEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  // --- NEW: State to hold the calculated analytics ---
+  const [analytics, setAnalytics] = useState({ foodSaved: 0, peopleFed: 0, carbonFootprintAvoided: 0 });
   const { user, loadUser } = useAuth();
   const { refreshNotifications } = useNotifications();
 
@@ -39,6 +41,32 @@ export const FoodProvider = ({ children }) => {
       }
     }
   };
+
+  // --- NEW: useEffect to calculate analytics whenever food listings change ---
+  useEffect(() => {
+    if (foodListings.length > 0) {
+        let totalQuantityClaimed = 0;
+        foodListings.forEach(listing => {
+            if (listing.claims) {
+                listing.claims.forEach(claim => {
+                    if (claim.pickupStatus === 'confirmed') {
+                        totalQuantityClaimed += claim.quantity;
+                    }
+                });
+            }
+        });
+
+        // Assuming 1 portion = 0.5 kg of food
+        const foodSavedKg = (totalQuantityClaimed * 0.5).toFixed(1);
+        const co2Prevented = (foodSavedKg * 2.5).toFixed(1);
+
+        setAnalytics({
+            foodSaved: foodSavedKg,
+            peopleFed: totalQuantityClaimed,
+            carbonFootprintAvoided: co2Prevented
+        });
+    }
+  }, [foodListings]);
 
   useEffect(() => {
     const initialLoad = async () => {
@@ -83,47 +111,27 @@ export const FoodProvider = ({ children }) => {
 
   const claimFood = async (foodId, quantityToClaim, deliveryDetails) => {
     try {
-      // Step 1: Perform the general claim
       await api.put(`/food/claim/${foodId}`, { quantityToClaim, deliveryDetails });
-
-      // --- FINAL FIX: Manually update state for an instant, single UI change ---
-      if (user && user.role === 'ngo') {
-        // Step 2: Create the booking. The API returns the new booking object.
-        const response = await createBooking(foodId, quantityToClaim);
-        const newBooking = response.data.data;
-
-        // Step 3: Add the new booking to the start of the local state array.
-        // This forces React to re-render the BookingsPage with the new item ONCE.
-        setNgoBookings(prevBookings => [newBooking, ...prevBookings]);
-      }
-
-      // Step 4: Refresh other data in the background. This no longer affects the bookings list directly.
       await getListings(); 
+      await loadUser();
       await refreshNotifications();
-
       return true;
     } catch (err) {
       console.error("Claim failed:", err.response?.data || err.message);
-      // If the claim fails, re-fetch the bookings to ensure data consistency.
-      if (user && user.role === 'ngo') {
-        await fetchNgoBookings();
-      }
       return false;
     }
   };
   
-  const analytics = { foodSaved: 0, peopleFed: 0, carbonFootprintAvoided: 0 };
-
   const value = {
     foodListings,
     myClaimedItems,
     ngoBookings,
     campusEvents,
     loading,
+    analytics, // <-- Expose the new dynamic analytics
     addFood,
     claimFood,
     addEvent,
-    analytics
   };
 
   return <FoodContext.Provider value={value}>{children}</FoodContext.Provider>;

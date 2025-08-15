@@ -85,10 +85,6 @@ exports.claimFood = async (req, res) => {
   const foodId = req.params.id;
   const userId = req.user.id;
 
-  // --- DEBUGGING STEP: Log the incoming request body ---
-  console.log("🔍 CLAIM REQUEST BODY:", JSON.stringify(req.body, null, 2));
-  // ----------------------------------------------------
-
   try {
     const listing = await FoodListing.findById(foodId);
     if (!listing || listing.status !== 'available' || listing.quantity < quantityToClaim) {
@@ -135,14 +131,11 @@ exports.claimFood = async (req, res) => {
     await sendPushNotification(userId, { title: 'Your OTP Code', body: claimantMessage });
 
     if (providerId) {
-        // This is the logic we need to verify
         if (deliveryDetails && deliveryDetails.deliveryRequested) {
-            console.log("✅ Delivery was requested. Sending 'delivery_request' notification.");
             const staffMessage = `${claimingUser.name} has requested delivery for ${quantityToClaim} of "${updatedListing.title}" to: ${deliveryDetails.deliveryAddress}`;
             await new Notification({ user: providerId, type: 'delivery_request', message: staffMessage, relatedListing: foodId, relatedClaimId: claimId }).save();
             await sendPushNotification(providerId, { title: 'New Delivery Request', body: staffMessage });
         } else {
-            console.log("✅ Delivery was NOT requested. Sending 'pickup_confirmation' notification.");
             const staffMessage = `Did ${claimingUser.name} pick up ${quantityToClaim} of "${updatedListing.title}"? Confirm with OTP.`;
             await new Notification({ user: providerId, type: 'pickup_confirmation', message: staffMessage, relatedListing: foodId, relatedClaimId: claimId }).save();
             await sendPushNotification(providerId, { title: 'New Pickup Request', body: staffMessage });
@@ -256,4 +249,49 @@ exports.getMyClaimedListings = async (req, res) => {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
+};
+
+// --- NEW FUNCTION TO GET ALL ITEMS POSTED BY AN ORGANIZER ---
+// @desc    Get all food listings posted by the logged-in organizer
+// @route   GET /api/food/my-listings
+// @access  Private (Canteen Organizers)
+// --- IMPROVED BACKEND FUNCTION FOR GETTING ORGANIZER'S LISTINGS ---
+// Add this to your foodController.js
+
+exports.getMyListings = async (req, res) => {
+    try {
+        console.log('getMyListings called for user:', req.user.id); // Debug log
+        
+        // Find all listings where the provider is the logged-in user
+        const listings = await FoodListing.find({ provider: req.user.id })
+            .populate('provider', 'name email') // Populate provider details
+            .sort({ createdAt: -1 }); // Sort by newest first
+        
+        console.log(`Found ${listings.length} listings for user ${req.user.id}`); // Debug log
+        
+        // Add some debugging info to each listing
+        const listingsWithDebugInfo = listings.map(listing => {
+            const confirmedClaims = listing.claims ? listing.claims.filter(claim => claim.pickupStatus === 'confirmed') : [];
+            console.log(`Listing ${listing.title}: ${listing.claims?.length || 0} total claims, ${confirmedClaims.length} confirmed`);
+            
+            return {
+                ...listing.toObject(),
+                debugInfo: {
+                    totalClaims: listing.claims?.length || 0,
+                    confirmedClaims: confirmedClaims.length,
+                    pendingClaims: listing.claims ? listing.claims.filter(claim => claim.pickupStatus === 'pending').length : 0
+                }
+            };
+        });
+        
+        res.json(listingsWithDebugInfo);
+        
+    } catch (err) {
+        console.error('Error in getMyListings:', err.message);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server Error',
+            error: err.message 
+        });
+    }
 };

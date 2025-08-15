@@ -86,12 +86,33 @@ exports.updateDeliveryStatus = async (req, res) => {
     }
 
     delivery.status = status;
-    await delivery.save();
 
+    // --- FIX: Award cashback points on successful delivery ---
     if (status === 'Delivered') {
+      const POINTS_PER_DELIVERY = 20; // <-- CORRECTED TO 5 POINTS
+
+      // 1. Award points to the student's user account
+      await User.updateOne(
+          { _id: volunteer.user },
+          { $inc: { cashbackPoints: POINTS_PER_DELIVERY } }
+      );
+
+      // 2. Record the points awarded in the delivery document
+      delivery.pointsAwarded = POINTS_PER_DELIVERY;
+      
+      // 3. Send a notification to the volunteer about their reward
+      await sendPushNotification(volunteer.user, {
+          title: 'Reward Earned!',
+          body: `You've earned ${POINTS_PER_DELIVERY} cashback points for completing the delivery of "${delivery.foodItem.title}". Well done!`
+      });
+
+      // 4. Make the volunteer available for the next task
       volunteer.status = 'Available';
       await volunteer.save();
     }
+    
+    // Save the updated delivery status and points
+    await delivery.save();
 
     // --- Send Push Notifications ---
     // 1. To the volunteer who updated the status

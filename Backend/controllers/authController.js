@@ -32,6 +32,7 @@ exports.registerUser = async (req, res) => {
 
     // Save the user to the database
     await user.save();
+    console.log('New user registered:', user.email, 'with role:', user.role); // Debug log
 
     // Create a JWT payload
     const payload = {
@@ -69,19 +70,23 @@ exports.loginUser = async (req, res) => {
     // Check for user by email
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('Login attempt failed - user not found:', email); // Debug log
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
     // Check if password matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log('Login attempt failed - wrong password for:', email); // Debug log
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
+
+    console.log('User logged in successfully:', user.email, 'Role:', user.role, 'ID:', user._id); // Debug log
 
     // Create JWT payload
     const payload = {
       user: {
-        id: user.id,
+        id: user.id, // This should be user._id converted to string
       },
     };
 
@@ -92,6 +97,7 @@ exports.loginUser = async (req, res) => {
       { expiresIn: '5h' },
       (err, token) => {
         if (err) throw err;
+        console.log('JWT token created for user ID:', user.id); // Debug log
         res.json({ token });
       }
     );
@@ -104,11 +110,26 @@ exports.loginUser = async (req, res) => {
 // @desc    Get the logged-in user's data
 exports.getLoggedInUser = async (req, res) => {
   try {
+    console.log('getLoggedInUser called for user ID:', req.user?.id); // Debug log
+    
     // req.user.id is available from the authMiddleware
     const user = await User.findById(req.user.id).select('-password');
+    
+    if (!user) {
+      console.log('User not found in database for ID:', req.user.id); // Debug log
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    
+    console.log('Returning user data:', {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }); // Debug log
+    
     res.json(user);
   } catch (err) {
-    console.error(err.message);
+    console.error('Error in getLoggedInUser:', err.message);
     res.status(500).send('Server Error');
   }
 };
