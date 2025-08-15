@@ -1,64 +1,97 @@
-import React, { createContext, useState, useContext } from 'react';
-
-// --- NEW: A mock "database" of all users in the system ---
-const mockUsers = [
-  { id: 1, name: 'Canteen Staff', email: 'canteen@test.com', password: 'password', role: 'canteen-organizer', points: 50 },
-  { id: 2, name: 'Test Student', email: 'student@test.com', password: 'password', role: 'student', points: 120 },
-  { id: 3, name: 'Riya Sharma', email: 'riya@test.com', password: 'password', role: 'student', points: 90 },
-  { id: 4, name: 'Amit Singh', email: 'amit@test.com', password: 'password', role: 'student', points: 150 },
-  { id: 5, name: 'Priya Patel', email: 'priya@test.com', password: 'password', role: 'student', points: 75 },
-];
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import api, { setAuthToken } from '../services/api';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  // --- NEW: State to hold the list of all users ---
-  const [users, setUsers] = useState(mockUsers);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const login = (email, password) => {
-    // The login function now uses the new `users` state array
-    const foundUser = users.find(u => u.email === email && u.password === password);
-    if (foundUser) {
-      setUser(foundUser);
-      return true;
+  const loadUser = async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setAuthToken(token);
+      try {
+        const res = await api.get('/auth'); 
+        setUser(res.data);
+        setIsAuthenticated(true);
+      } catch (err) {
+        console.error("Token is invalid, removing.", err);
+        localStorage.removeItem('token');
+      }
     }
-    return false;
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const login = async (email, password) => {
+    try {
+      const res = await api.post('/auth/login', { email, password });
+      setAuthToken(res.data.token);
+      await loadUser();
+      return true;
+    } catch (err) {
+      console.error(err.response?.data?.msg || 'Login failed');
+      return false;
+    }
+  };
+  
+  const register = async (formData) => {
+    try {
+      const res = await api.post('/auth/register', formData);
+      setAuthToken(res.data.token);
+      await loadUser();
+      return true;
+    } catch (err) {
+      console.error(err.response?.data?.msg || 'Registration failed');
+      return false;
+    }
   };
 
   const logout = () => {
+    setAuthToken(null);
     setUser(null);
+    setIsAuthenticated(false);
   };
-  
-  const addPoints = (userId, pointsToAdd) => {
-    setUsers(currentUsers =>
-      currentUsers.map(u =>
-        u.id === userId ? { ...u, points: u.points + pointsToAdd } : u
-      )
-    );
-    // Also update the currently logged-in user's points in real-time
-    if (user && user.id === userId) {
-        setUser(currentUser => ({...currentUser, points: currentUser.points + pointsToAdd}));
-    }
-  };
-  
-  // Mock registration function
-  const register = (formData) => {
-      console.log("Registered (mock):", formData);
-      return true;
-  }
 
+  // --- NEW: Function to update challenge progress on the frontend ---
+  const incrementWeeklyChallenge = () => {
+    setUser(currentUser => {
+      // Make sure user and weeklyChallenge exist before trying to update
+      if (currentUser && currentUser.weeklyChallenge && currentUser.weeklyChallenge.progress < currentUser.weeklyChallenge.goal) {
+        return {
+          ...currentUser,
+          weeklyChallenge: {
+            ...currentUser.weeklyChallenge,
+            progress: currentUser.weeklyChallenge.progress + 1,
+          },
+        };
+      }
+      // If no update is needed, return the user state as is
+      return currentUser;
+    });
+  };
+  
   const value = {
     user,
-    users, // <-- Expose the full user list for the leaderboard
-    isAuthenticated: !!user,
+    isAuthenticated,
+    loading,
     login,
-    logout,
     register,
-    addPoints,
+    logout,
+    loadUser,
+    incrementWeeklyChallenge, // <-- Expose the new function
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

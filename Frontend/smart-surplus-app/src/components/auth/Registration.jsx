@@ -52,6 +52,7 @@ const RegistrationForm = () => {
           <select id="role" name="role" value={formData.role} onChange={handleChange}>
             <option value="student">Student</option>
             <option value="canteen-organizer">Canteen / Event Staff</option>
+            <option value="ngo">NGO Representative</option>
           </select>
         </div>
         <button type="submit" className="submit-button">Create Account</button>

@@ -35,9 +35,6 @@ const BrowseFoodPage = () => {
         )}
       </div>
 
-     // src/pages/BrowseFoodPage.jsx
-
-// ... keep all the React component code the same ...
 
       <style jsx>{`
         .browse-page-container {

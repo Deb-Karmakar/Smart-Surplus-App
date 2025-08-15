@@ -6,9 +6,9 @@ const FoodForm = ({ onSubmit, isSubmitting }) => {
     source: '',
     quantity: '',
     foodType: 'cooked_meal',
-    preparationPeriod: '13',
-    // --- NEW: Add storageCondition to the form's state ---
-    storageCondition: 'Covered', // A sensible default
+    preparedDate: '',
+    preparedTime: '',
+    storageCondition: 'Covered Room Temp', // Default value matches the rules
   });
 
   const handleChange = (e) => {
@@ -33,39 +33,40 @@ const FoodForm = ({ onSubmit, isSubmitting }) => {
           <input type="text" id="source" name="source" value={formData.source} onChange={handleChange} placeholder="e.g., Main Campus Canteen" required />
         </div>
         <div className="form-group">
-          <label htmlFor="quantity">Quantity</label>
-          <input type="text" id="quantity" name="quantity" value={formData.quantity} onChange={handleChange} placeholder="e.g., Serves 10-12 people" required />
+          <label htmlFor="quantity">Quantity (Number of items)</label>
+          <input type="number" id="quantity" name="quantity" value={formData.quantity} onChange={handleChange} placeholder="e.g., 10" required min="1"/>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="foodType">Type of Food</label>
+          <select id="foodType" name="foodType" value={formData.foodType} onChange={handleChange}>
+            <option value="cooked_meal">Cooked Meal (Rice, Curry)</option>
+            <option value="dairy_sweets">Dairy / Sweets</option>
+            <option value="fried_snacks">Fried Snacks</option>
+            <option value="baked_goods">Baked Goods (Bread, Puffs)</option>
+            <option value="cut_fruits">Salads & Cut Fruits</option>
+            <option value="beverages">Beverages</option>
+          </select>
         </div>
 
         <div className="form-row">
-            <div className="form-group">
-                <label htmlFor="foodType">Type of Food</label>
-                <select id="foodType" name="foodType" value={formData.foodType} onChange={handleChange}>
-                    <option value="cooked_meal">Cooked Meal (Rice, Curry, etc.)</option>
-                    <option value="baked_goods">Baked Goods (Bread, Puffs)</option>
-                    <option value="fried_snacks">Fried Snacks (Samosa, Pakora)</option>
-                    <option value="dairy_sweets">Dairy/Sweets</option>
-                    <option value="cut_fruits">Salads & Cut Fruits</option>
-                </select>
-            </div>
-            <div className="form-group">
-                <label htmlFor="preparationPeriod">Meal Period</label>
-                <select id="preparationPeriod" name="preparationPeriod" value={formData.preparationPeriod} onChange={handleChange}>
-                    <option value="8">Breakfast (8 AM)</option>
-                    <option value="13">Lunch (1 PM)</option>
-                    <option value="17">Evening Snacks (5 PM)</option>
-                    <option value="20">Dinner (8 PM)</option>
-                </select>
-            </div>
+          <div className="form-group">
+            <label htmlFor="preparedDate">Date Prepared</label>
+            <input type="date" id="preparedDate" name="preparedDate" value={formData.preparedDate} onChange={handleChange} required />
+          </div>
+          <div className="form-group">
+            <label htmlFor="preparedTime">Time Prepared</label>
+            <input type="time" id="preparedTime" name="preparedTime" value={formData.preparedTime} onChange={handleChange} required />
+          </div>
         </div>
 
-        {/* --- NEW: Add the Storage Condition dropdown --- */}
         <div className="form-group">
           <label htmlFor="storageCondition">Storage Condition</label>
           <select id="storageCondition" name="storageCondition" value={formData.storageCondition} onChange={handleChange}>
-            <option value="Covered">Covered (Room Temp)</option>
+            <option value="Covered Room Temp">Covered (Room Temp)</option>
+            <option value="Uncovered Room Temp">Uncovered (Room Temp)</option>
             <option value="Refrigerated">Refrigerated</option>
-            <option value="Room Temperature">Uncovered (Room Temp)</option>
+            <option value="Frozen">Frozen</option>
           </select>
         </div>
 
@@ -73,7 +74,7 @@ const FoodForm = ({ onSubmit, isSubmitting }) => {
           {isSubmitting ? 'Listing...' : 'List Surplus Food'}
         </button>
       </form>
-      {/* Your existing <style jsx> block does not need to change. */}
+
       <style jsx>{`
         .food-form { max-width: 600px; margin: 0 auto; }
         .form-group { margin-bottom: 20px; }
