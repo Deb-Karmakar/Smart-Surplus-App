@@ -5,10 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { FaStoreAlt, FaBoxOpen, FaUtensils, FaClock, FaMapMarkerAlt } from "react-icons/fa";
 import { MdOutlineCancel, MdOutlineCheckCircle, MdDeliveryDining } from "react-icons/md";
 import { HiSparkles } from "react-icons/hi";
-// --- FIX: Import the new, clearly named function ---
 import { createBooking } from '../../services/api';
 
-// --- Helper function to determine freshness tag (Your original logic) ---
+// --- Helper function to determine freshness tag ---
 const getFreshnessTag = (preparationTime, expiresAt) => {
     const prepTime = new Date(preparationTime).getTime();
     const expiryTime = new Date(expiresAt).getTime();
@@ -37,12 +36,10 @@ const getFreshnessTag = (preparationTime, expiresAt) => {
 };
 
 const FoodCard = ({ foodItem }) => {
-  // Your original context hooks
   const { claimFood } = useFood(); 
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Your original state management
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [quantityToClaim, setQuantityToClaim] = useState(1);
   const [error, setError] = useState("");
@@ -89,28 +86,22 @@ const FoodCard = ({ foodItem }) => {
       return;
     }
 
-    // --- STEP 1: Use your original claimFood function from the context ---
     const success = await claimFood(foodItem._id, quantityToClaim, {
       deliveryRequested,
       deliveryAddress: deliveryRequested ? deliveryAddress : null,
     });
 
     if (success) {
-      // --- STEP 2: If the claim was successful, AND the user is an NGO, create a booking record ---
       if (user.role === 'ngo') {
         try {
-          // This call happens in the background and doesn't affect the main flow.
           await createBooking(foodItem._id, quantityToClaim);
           console.log("NGO Booking record created successfully.");
         } catch (bookingError) {
-          // Log an error if the booking fails, but don't block the user
-          // as the main claim has already succeeded.
           console.error("Failed to create a booking record for NGO:", bookingError);
         }
       }
       
       setIsModalOpen(false);
-      // You can add a success alert here if you wish
       alert("Food claimed successfully!");
     } else {
       setError(
@@ -119,7 +110,6 @@ const FoodCard = ({ foodItem }) => {
     }
   };
 
-  // The rest of your component's JSX and logic remains exactly the same.
   const isExpired = freshness.className === "expired";
   const canClaim = user && (user.role === 'student' || user.role === 'ngo');
   const isDisabled = isExpired || !canClaim;
@@ -140,14 +130,15 @@ const FoodCard = ({ foodItem }) => {
 
   return (
     <>
-      {/* YOUR ENTIRE JSX STRUCTURE AND STYLES ARE PRESERVED HERE */}
-      {/* ... (The long JSX and style block you provided) ... */}
-       <div className={`food-card ${isDisabled && !isExpired ? "disabled-role" : ""} ${isExpired ? "disabled" : ""}`}>
+      <div className={`food-card ${isDisabled && !isExpired ? "disabled-role" : ""} ${isExpired ? "disabled" : ""}`}>
         <div className="card-image-container">
+          {/* --- FINAL FIX: Display the image from Cloudinary --- */}
           <img
-            src={foodItem.imageUrl}
+            src={foodItem.imageUrl || 'https://placehold.co/600x400/EEE/31343C?text=No+Image'}
             alt={foodItem.title}
             className="food-card-image"
+            // This is a fallback in case the image URL is broken
+            onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/600x400/EEE/31343C?text=Image+Error'; }}
           />
           <div className="image-overlay"></div>
           <span className={`freshness-badge ${freshness.className}`}>

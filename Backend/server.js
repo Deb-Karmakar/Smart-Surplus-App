@@ -41,7 +41,8 @@ app.use('/api/ngo', require('./routes/ngo'));
 app.use('/api/subscribe', require('./routes/subscribe'));
 app.use('/api/volunteers', require('./routes/volunteers'));
 app.use('/api/deliveries', require('./routes/deliveries'));
-app.use('/api/bookings', require('./routes/bookings')); // <-- ADDED THIS FOR THE BOOKING FEATURE
+app.use('/api/bookings', require('./routes/bookings'));
+app.use('/api/upload', require('./routes/upload'));
 
 
 const PORT = process.env.PORT || 5000;
