@@ -198,10 +198,14 @@ exports.confirmPickup = async (req, res) => {
 
     try {
         const listing = await FoodListing.findOne({ "claims._id": claimId });
-        if (!listing) return res.status(404).json({ msg: 'Claim not found' });
+        if (!listing) {
+            return res.status(404).json({ msg: 'Claim not found' });
+        }
 
         const claim = listing.claims.id(claimId);
-        if (!claim) return res.status(404).json({ msg: 'Claim details not found' });
+        if (!claim) {
+            return res.status(404).json({ msg: 'Claim details not found' });
+        }
 
         if (claim.otp !== otp) {
             return res.status(400).json({ msg: 'Incorrect OTP.' });
@@ -210,27 +214,32 @@ exports.confirmPickup = async (req, res) => {
             return res.status(400).json({ msg: 'This pickup has already been confirmed.' });
         }
 
-        const newQuantity = listing.quantity - claim.quantity;
-        const newStatus = newQuantity <= 0 ? 'claimed' : listing.status;
-
-        await FoodListing.updateOne(
-            { "claims._id": claimId },
-            { 
-                $set: { 
-                    "claims.$.pickupStatus": "confirmed",
-                },
-                ...( (await User.findById(claim.user))?.role !== 'ngo' && { $set: { quantity: newQuantity } } ),
-                ...(newStatus === 'claimed' && { $set: { status: newStatus } })
-            }
-        );
-
+        // --- FINAL FIX: Simplify the database update logic ---
+        // 1. Directly modify the document in memory
+        claim.pickupStatus = 'confirmed';
+        
         const userWhoClaimed = await User.findById(claim.user);
+        
+        // 2. Only deduct quantity if the user is NOT an NGO (as it was deducted on claim)
+        if (userWhoClaimed.role !== 'ngo') {
+            listing.quantity -= claim.quantity;
+        }
+
+        if (listing.quantity <= 0) {
+            listing.status = 'claimed';
+        }
+
+        // 3. Save all changes to the database in a single, reliable operation
+        await listing.save();
+        
+        // 4. Update user points
         userWhoClaimed.points += (listing.points || 5) * claim.quantity;
         if (userWhoClaimed.weeklyChallenge && userWhoClaimed.weeklyChallenge.progress < userWhoClaimed.weeklyChallenge.goal) {
             userWhoClaimed.weeklyChallenge.progress += 1;
         }
         await userWhoClaimed.save();
 
+        // 5. Clean up the notification
         await Notification.findOneAndDelete({ relatedClaimId: claimId, type: 'pickup_confirmation' });
 
         res.json({ msg: 'Pickup confirmed successfully!' });
@@ -239,6 +248,57 @@ exports.confirmPickup = async (req, res) => {
         res.status(500).send('Server Error');
     }
 };
+
+
+// --- NEW FUNCTION TO HANDLE CANCELLATIONS ---
+exports.cancelPickup = async (req, res) => {
+    const { claimId } = req.params;
+
+    try {
+        const listing = await FoodListing.findOne({ "claims._id": claimId });
+        if (!listing) {
+            return res.status(404).json({ msg: 'Claim not found in any listing.' });
+        }
+
+        const claim = listing.claims.id(claimId);
+        if (!claim) {
+            return res.status(404).json({ msg: 'Claim details not found.' });
+        }
+
+        if (claim.pickupStatus !== 'pending') {
+            return res.status(400).json({ msg: 'This pickup is not pending and cannot be cancelled.' });
+        }
+
+        // Add the quantity back to the main listing
+        listing.quantity += claim.quantity;
+        // Mark the claim as cancelled
+        claim.pickupStatus = 'cancelled';
+        
+        await listing.save();
+
+        // Send a notification to the user whose claim was cancelled
+        const userToNotify = await User.findById(claim.user);
+        if (userToNotify) {
+            const message = `Your pickup for "${listing.title}" was cancelled as it was not collected in time.`;
+            await new Notification({ 
+                user: claim.user, 
+                type: 'claim_student', // Using a general type
+                message, 
+                relatedListing: listing._id 
+            }).save();
+            await sendPushNotification(claim.user, { title: 'Pickup Cancelled', body: message });
+        }
+
+        // Delete the "pickup_confirmation" notification for the canteen staff
+        await Notification.findOneAndDelete({ relatedClaimId: claimId, type: 'pickup_confirmation' });
+
+        res.json({ msg: 'Pickup has been successfully cancelled.' });
+    } catch (err) {
+        console.error('Error in cancelPickup:', err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
 
 exports.getMyClaimedListings = async (req, res) => {
   try {
@@ -251,47 +311,54 @@ exports.getMyClaimedListings = async (req, res) => {
   }
 };
 
-// --- NEW FUNCTION TO GET ALL ITEMS POSTED BY AN ORGANIZER ---
-// @desc    Get all food listings posted by the logged-in organizer
-// @route   GET /api/food/my-listings
-// @access  Private (Canteen Organizers)
-// --- IMPROVED BACKEND FUNCTION FOR GETTING ORGANIZER'S LISTINGS ---
-// Add this to your foodController.js
-
 exports.getMyListings = async (req, res) => {
     try {
-        console.log('getMyListings called for user:', req.user.id); // Debug log
-        
-        // Find all listings where the provider is the logged-in user
         const listings = await FoodListing.find({ provider: req.user.id })
-            .populate('provider', 'name email') // Populate provider details
-            .sort({ createdAt: -1 }); // Sort by newest first
-        
-        console.log(`Found ${listings.length} listings for user ${req.user.id}`); // Debug log
-        
-        // Add some debugging info to each listing
-        const listingsWithDebugInfo = listings.map(listing => {
-            const confirmedClaims = listing.claims ? listing.claims.filter(claim => claim.pickupStatus === 'confirmed') : [];
-            console.log(`Listing ${listing.title}: ${listing.claims?.length || 0} total claims, ${confirmedClaims.length} confirmed`);
-            
-            return {
-                ...listing.toObject(),
-                debugInfo: {
-                    totalClaims: listing.claims?.length || 0,
-                    confirmedClaims: confirmedClaims.length,
-                    pendingClaims: listing.claims ? listing.claims.filter(claim => claim.pickupStatus === 'pending').length : 0
-                }
-            };
-        });
-        
-        res.json(listingsWithDebugInfo);
-        
+            .sort({ createdAt: -1 });
+        res.json(listings);
     } catch (err) {
-        console.error('Error in getMyListings:', err.message);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Server Error',
-            error: err.message 
-        });
+        console.error(err.message);
+        res.status(500).send('Server Error');
     }
 };
+
+
+// @desc    Get all pending pickup claims for a canteen organizer
+// @route   GET /api/food/pending-pickups
+// @access  Private (Canteen Organizers)
+exports.getPendingPickups = async (req, res) => {
+    try {
+        // --- FINAL FIX: A more direct and reliable way to fetch pending claims ---
+
+        // 1. Find all listings created by the logged-in user that contain pending claims.
+        const listingsWithPendingClaims = await FoodListing.find({
+            provider: req.user.id,
+            "claims.pickupStatus": "pending" // Only get documents that have at least one pending claim
+        }).populate('claims.user', 'name'); // Populate the user's name for each claim
+
+        const pendingClaims = [];
+
+        // 2. Iterate through the results to build a clean list of only the pending claims.
+        listingsWithPendingClaims.forEach(listing => {
+            listing.claims.forEach(claim => {
+                if (claim.pickupStatus === 'pending') {
+                    // Add extra info to each claim object to make the UI easier to build
+                    pendingClaims.push({
+                        ...claim.toObject(), // Convert the Mongoose sub-document to a plain object
+                        foodTitle: listing.title,
+                        listingId: listing._id
+                    });
+                }
+            });
+        });
+        
+        // 3. Sort the final list by the date the claim was made
+        pendingClaims.sort((a, b) => new Date(b.claimedAt) - new Date(a.claimedAt));
+
+        res.json(pendingClaims);
+    } catch (err) {
+        console.error("Error in getPendingPickups:", err.message);
+        res.status(500).send('Server Error');
+    }
+};
+

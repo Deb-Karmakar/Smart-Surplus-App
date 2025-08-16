@@ -12,7 +12,7 @@ import './App.css';
 // Import Components
 import Navbar from './components/layout/Navbar.jsx';
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
-import Chatbot from './components/shared/Chatbot.jsx'; // <-- 1. IMPORT THE CHATBOT
+import Chatbot from './components/shared/Chatbot.jsx';
 
 // Import All Pages
 import HomePage from './pages/HomePage.jsx';
@@ -29,6 +29,7 @@ import ReachOutPage from './pages/ReachOutPage.jsx';
 import VolunteerPage from './pages/VolunteerPage.jsx';
 import SummonVolunteerPage from './pages/SummonVolunteerPage.jsx';
 import BookingsPage from './pages/BookingsPage.jsx';
+import PendingPickupsPage from './pages/PendingPickupsPage.jsx'; // <-- 1. IMPORT THE NEW PAGE
 
 // A component to handle the subscription logic
 const PushSubscriptionHandler = () => {
@@ -118,11 +119,21 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+                
+                {/* --- 2. ADD THE NEW ROUTE FOR PENDING PICKUPS --- */}
+                <Route
+                  path="/pending-pickups"
+                  element={
+                    <ProtectedRoute allowedRoles={['canteen-organizer']}>
+                      <PendingPickupsPage />
+                    </ProtectedRoute>
+                  }
+                />
               
               </Routes>
             </main>
             
-            <Chatbot /> {/* <-- 2. ADD THE CHATBOT COMPONENT HERE */}
+            <Chatbot />
           </Router>
         </FoodProvider>
       </NotificationProvider>

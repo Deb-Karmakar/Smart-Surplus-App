@@ -26,7 +26,7 @@ const Navbar = () => {
   ];
   const studentLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: 'fas fa-user-circle' },
-    { name: 'Updates', path: '/notifications', icon: 'fas fa-bell', badge: unreadCount },
+    { name: 'Notifications', path: '/notifications', icon: 'fas fa-bell', badge: unreadCount },
     { name: 'Volunteer', path: '/volunteer', icon: 'fas fa-hands-helping' },
     { name: 'Profile', path: '/profile', icon: 'fas fa-user-alt' },
     { name: 'Leaderboard', path: '/leaderboard', icon: 'fas fa-trophy' },
@@ -34,16 +34,16 @@ const Navbar = () => {
   const organizerLinks = [
     { name: 'Add Food', path: '/add-food', icon: 'fas fa-plus-circle' },
     { name: 'Dashboard', path: '/dashboard', icon: 'fas fa-tachometer-alt' },
-    { name: 'Analytics', path: '/analytics', icon: 'far fa-chart-bar' },
+    { name: 'Pending Pickups', path: '/pending-pickups', icon: 'fas fa-truck' },
     { name: 'Reach Out', path: '/reach-out', icon: 'fas fa-hands-helping' },
-    { name: 'Updates', path: '/notifications', icon: 'fas fa-bell', badge: unreadCount },
+    { name: 'Notifications', path: '/notifications', icon: 'fas fa-bell', badge: unreadCount },
     { name: 'Summon Volunteer', path: '/summon-volunteer', icon: 'fas fa-shipping-fast' },
     { name: 'Profile', path: '/profile', icon: 'fas fa-user-alt' },
   ];
   // --- FIX: Corrected links for the NGO role ---
   const ngoLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: 'fas fa-tachometer-alt' },
-    { name: 'Updates', path: '/notifications', icon: 'fas fa-bell', badge: unreadCount },
+    { name: 'Notifications', path: '/notifications', icon: 'fas fa-bell', badge: unreadCount },
     { name: 'Bookings', path: '/bookings', icon: 'fas fa-clipboard-check' },
     { name: 'Profile', path: '/profile', icon: 'fas fa-user-alt' },
   ];

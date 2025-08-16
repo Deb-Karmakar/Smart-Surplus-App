@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/authMiddleware');
+
 const {
   getFoodListings,
   addFoodListing,
@@ -8,9 +9,10 @@ const {
   getMyClaimedListings,
   respondToDelivery,
   confirmPickup,
-  getMyListings // <-- 1. IMPORT THE NEW FUNCTION
+  getMyListings,
+  cancelPickup,
+  getPendingPickups // <-- ADD THIS LINE
 } = require('../controllers/foodController');
-
 // @route   GET /api/food
 // @desc    Get all available food listings
 // @access  Public
@@ -41,11 +43,22 @@ router.put('/delivery-response/:claimId', auth, respondToDelivery);
 // @access  Private
 router.put('/confirm-pickup/:claimId', auth, confirmPickup);
 
-// --- 2. ADD THE NEW ROUTE FOR THE CANTEEN DASHBOARD ---
 // @route   GET /api/food/my-listings
 // @desc    Get all listings for the logged-in canteen organizer
 // @access  Private
 router.get('/my-listings', auth, getMyListings);
 
+// --- 2. ADD THE NEW ROUTE FOR CANCELLING A PICKUP ---
+// @route   PUT /api/food/cancel-pickup/:claimId
+// @desc    Cancel a pending pickup request
+// @access  Private
+router.put('/cancel-pickup/:claimId', auth, cancelPickup);
+
+// Add this to your routes/food.js file
+
+// @route   GET /api/food/pending-pickups
+// @desc    Get all pending claims for the logged-in canteen organizer
+// @access  Private
+router.get('/pending-pickups', auth, getPendingPickups);
 
 module.exports = router;

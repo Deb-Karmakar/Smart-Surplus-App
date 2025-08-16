@@ -142,7 +142,7 @@ const OrganizerDashboard = ({ user, campusEvents }) => {
                         <div className="alert-content">
                             <h4>Action Required</h4>
                             <p>You have {myStats.pendingPickups} pending pickup confirmations. Students are waiting to collect their food!</p>
-                            <Link to="/notifications" className="btn-primary">
+                            <Link to="/pending-pickups" className="btn-primary">
                                 View Pickup Requests →
                             </Link>
                         </div>
