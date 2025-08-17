@@ -1,354 +1,241 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { NavLink } from "react-router-dom";
-import { FaLightbulb } from "react-icons/fa";
-import { FaCheckCircle } from "react-icons/fa";
+import { FaLightbulb, FaCheckCircle, FaUtensils, FaHeart, FaRecycle } from "react-icons/fa";
 import { IoBagCheck } from "react-icons/io5";
+import { MdRestaurant } from "react-icons/md";
+import "./HomePage.css";
 
-// --- Reusable FoodCard Component ---
-const FoodCard = ({ foodItem }) => {
-  const [timeLeft, setTimeLeft] = useState("");
-
-  useEffect(() => {
-    const calculateTimeLeft = () => {
-      const now = new Date();
-      const expiry = new Date(foodItem.expiresAt);
-      const difference = expiry - now;
-
-      if (difference > 0) {
-        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((difference / 1000 / 60) % 60);
-        return `${hours}h ${minutes}m left`;
-      }
-      return "Expired";
-    };
-
-    setTimeLeft(calculateTimeLeft());
-    const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 60000); // Update every minute
-
-    return () => clearInterval(timer);
-  }, [foodItem.expiresAt]);
-
-  return (
-    <div className="food-card">
-      <img
-        src={foodItem.imageUrl}
-        alt={foodItem.title}
-        className="food-card-image"
-      />
-      <div className="food-card-content">
-        <div className="food-card-header">
-          <h3 className="food-card-title">{foodItem.title}</h3>
-          <span className="food-card-timer">
-            <i className="far fa-clock"></i> {timeLeft}
-          </span>
-        </div>
-        <p className="food-card-source">
-          <i className="fas fa-store-alt"></i> {foodItem.source}
-        </p>
-        <p className="food-card-quantity">
-          <i className="fas fa-box-open"></i> Quantity: {foodItem.quantity}
-        </p>
-        <button className="food-card-button">Claim Now</button>
-      </div>
-    </div>
-  );
-};
-
-// --- Mock Data (Simulates API response) ---
-const mockFoodListings = [
-  {
-    id: 1,
-    title: "Veg Pulao & Dal",
-    source: "Main Campus Canteen",
-    quantity: "Serves 8-10",
-    expiresAt: new Date(new Date().getTime() + 2 * 60 * 60 * 1000), // 2 hours from now
-    imageUrl: "https://placehold.co/600x400/2C5E4A/FFFFFF?text=Veg+Pulao",
-  },
-  {
-    id: 2,
-    title: "Idli Sambar",
-    source: "Hostel Mess Block-B",
-    quantity: "Approx. 25 pieces",
-    expiresAt: new Date(new Date().getTime() + 1 * 60 * 60 * 1000), // 1 hour from now
-    imageUrl: "https://placehold.co/600x400/FF7A59/FFFFFF?text=Idli+Sambar",
-  },
-  {
-    id: 3,
-    title: "Leftover Sandwiches",
-    source: "Event Hall Seminar",
-    quantity: "15 Sandwiches",
-    expiresAt: new Date(new Date().getTime() + 0.5 * 60 * 60 * 1000), // 30 mins from now
-    imageUrl: "https://placehold.co/600x400/2C5E4A/FFFFFF?text=Sandwiches",
-  },
-  {
-    id: 4,
-    title: "Fresh Fruit Salad",
-    source: "Juice Corner",
-    quantity: "5 Large Bowls",
-    expiresAt: new Date(new Date().getTime() + 3 * 60 * 60 * 1000), // 3 hours from now
-    imageUrl: "https://placehold.co/600x400/FF7A59/FFFFFF?text=Fruit+Salad",
-  },
-];
-
-// --- HomePage Component ---
-const HomePage = () => {
-  return (
-    <>
-      <div className="homepage-container">
-        {/* --- Hero Section --- */}
-        <section className="hero-section">
-          <div className="hero-content">
-            <h1 className="hero-title">
-              Don't Waste,{" "}
-              <span className="highlight-text">Share a Plate.</span>
-            </h1>
-            <p className="hero-subtitle">
-              Rescue surplus food from campus canteens and events. Help reduce
-              waste and feed the community, one bite at a time.
-            </p>
-            <NavLink to="/add-food" className="hero-cta-button">
+const HomePage = ({ userRole }) => {
+  // Function to determine the main CTA button based on user role
+  const getMainCTA = () => {
+    switch (userRole) {
+      case 'canteen-organizer':
+        return (
+          <NavLink to="/add-food" className="hero-cta-button primary">
+            <MdRestaurant className="cta-icon" />
+            List Surplus Food
+          </NavLink>
+        );
+      case 'student':
+        return (
+          <NavLink to="/browse" className="hero-cta-button primary">
+            <FaUtensils className="cta-icon" />
+            Browse Available Food
+          </NavLink>
+        );
+      case 'ngo':
+        return (
+          <NavLink to="/browse" className="hero-cta-button primary">
+            <FaHeart className="cta-icon" />
+            Find Food to Distribute
+          </NavLink>
+        );
+      default:
+        return (
+          <div className="cta-buttons-group">
+            <NavLink to="/browse" className="hero-cta-button primary">
+              <FaUtensils className="cta-icon" />
+              Browse Available Food
+            </NavLink>
+            <NavLink to="/add-food" className="hero-cta-button secondary">
+              <MdRestaurant className="cta-icon" />
               List Surplus Food
             </NavLink>
           </div>
-        </section>
+        );
+    }
+  };
 
-        {/* --- How It Works Section --- */}
-        <section className="how-it-works-section">
+  // Function to get role-specific subtitle
+  const getSubtitle = () => {
+    switch (userRole) {
+      case 'canteen-organizer':
+        return "Transform your surplus food into community impact. List your excess inventory and help reduce waste while feeding those in need.";
+      case 'student':
+        return "Discover fresh, affordable meals from campus canteens and events. Never let good food go to waste while satisfying your hunger.";
+      case 'ngo':
+        return "Connect with surplus food sources to support your community programs. Help bridge the gap between food waste and food security.";
+      default:
+        return "Join our mission to eliminate food waste on campus. Whether you're sharing surplus or finding your next meal, every action counts.";
+    }
+  };
+
+  return (
+    <div className="homepage-wrapper">
+      <div className="homepage-container">
+      {/* Hero Section */}
+      <section className="hero-section">
+        <div className="hero-overlay"></div>
+        <div className="hero-content">
+          <div className="hero-badge">
+            <FaRecycle className="badge-icon" />
+            Zero Waste Campus Initiative
+          </div>
+          <h1 className="hero-title">
+            Don't Waste,{" "}
+            <span className="highlight-text">Share the Taste</span>
+          </h1>
+          <p className="hero-subtitle">
+            {getSubtitle()}
+          </p>
+          {getMainCTA()}
+          
+          <div className="hero-stats">
+            <div className="stat-item">
+              <span className="stat-number">2,500+</span>
+              <span className="stat-label">Meals Saved</span>
+            </div>
+            <div className="stat-divider"></div>
+            <div className="stat-item">
+              <span className="stat-number">500+</span>
+              <span className="stat-label">Active Members</span>
+            </div>
+            <div className="stat-divider"></div>
+            <div className="stat-item">
+              <span className="stat-number">95%</span>
+              <span className="stat-label">Waste Reduction</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="hero-image">
+          <div className="floating-card card-1">
+            <FaUtensils className="card-icon" />
+            <span>Fresh Meals</span>
+          </div>
+          <div className="floating-card card-2">
+            <FaRecycle className="card-icon" />
+            <span>Zero Waste</span>
+          </div>
+          <div className="floating-card card-3">
+            <FaHeart className="card-icon" />
+            <span>Community</span>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="how-it-works-section">
+        <div className="section-header">
           <h2 className="section-title">How It Works</h2>
-          <div className="steps-container">
-            <div className="step">
-              <div className="step-icon">
-                <FaLightbulb />
-              </div>
-              <h3>1. Discover</h3>
-              <p>
-                Browse available surplus food listings from across the campus in
-                real-time.
-              </p>
+          <p className="section-subtitle">
+            Three simple steps to make a difference in your community
+          </p>
+        </div>
+        
+        <div className="steps-container">
+          <div className="step">
+            <div className="step-number">01</div>
+            <div className="step-icon">
+              <FaLightbulb />
             </div>
-            <div className="step">
-              <div className="step-icon">
-                <FaCheckCircle />
-              </div>
-              <h3>2. Claim</h3>
-              <p>
-                Found something you like? Click "Claim Now" to reserve your
-                portion instantly.
-              </p>
-            </div>
-            <div className="step">
-              <div className="step-icon">
-                <IoBagCheck />
-              </div>
-              <h3>3. Collect</h3>
-              <p>
-                Head to the pickup location within the specified time window and
-                enjoy your meal.
-              </p>
-            </div>
+            <h3 className="step-title">Discover</h3>
+            <p className="step-description">
+              Browse real-time listings of surplus food from campus canteens, 
+              events, and dining halls with detailed information and pickup times.
+            </p>
           </div>
-        </section>
-
-        {/* --- Live Listings Section --- */}
-        <section className="listings-section">
-          <h2 className="section-title">Live Surplus Food</h2>
-          <div className="food-grid">
-            {mockFoodListings.map((item) => (
-              <FoodCard key={item.id} foodItem={item} />
-            ))}
+          
+          <div className="step-connector"></div>
+          
+          <div className="step">
+            <div className="step-number">02</div>
+            <div className="step-icon">
+              <FaCheckCircle />
+            </div>
+            <h3 className="step-title">Claim</h3>
+            <p className="step-description">
+              Reserve your portion instantly with our smart booking system. 
+              Get confirmation and pickup details delivered to your phone.
+            </p>
           </div>
-        </section>
-      </div>
+          
+          <div className="step-connector"></div>
+          
+          <div className="step">
+            <div className="step-number">03</div>
+            <div className="step-icon">
+              <IoBagCheck />
+            </div>
+            <h3 className="step-title">Collect</h3>
+            <p className="step-description">
+              Visit the pickup location within your time window and enjoy 
+              fresh, quality food while contributing to sustainability.
+            </p>
+          </div>
+        </div>
+      </section>
 
-      <style jsx="true">{`
-        .homepage-container {
-          background-color: #f4f7f6;
-          color: #333;
-        }
+      {/* Features Section */}
+      <section className="features-section">
+        <div className="section-header">
+          <h2 className="section-title">Why Choose FoodShare?</h2>
+          <p className="section-subtitle">
+            Built for the modern campus community with sustainability in mind
+          </p>
+        </div>
+        
+        <div className="features-grid">
+          <div className="feature-card">
+            <div className="feature-icon">
+              <FaUtensils />
+            </div>
+            <h3 className="feature-title">Quality Assured</h3>
+            <p className="feature-description">
+              All listed food items are fresh and safe, with clear expiry times and quality standards maintained.
+            </p>
+          </div>
+          
+          <div className="feature-card">
+            <div className="feature-icon">
+              <FaRecycle />
+            </div>
+            <h3 className="feature-title">Environmental Impact</h3>
+            <p className="feature-description">
+              Reduce food waste by up to 95% and contribute to a more sustainable campus ecosystem.
+            </p>
+          </div>
+          
+          <div className="feature-card">
+            <div className="feature-icon">
+              <FaHeart />
+            </div>
+            <h3 className="feature-title">Community Building</h3>
+            <p className="feature-description">
+              Connect with fellow students, staff, and local organizations to build a stronger community network.
+            </p>
+          </div>
+        </div>
+      </section>
 
-        /* --- Hero Section --- */
-        .hero-section {
-          background: linear-gradient(
-              rgba(44, 94, 74, 0.85),
-              rgba(44, 94, 74, 0.85)
-            ),
-            url("https://images.unsplash.com/photo-1547573854-74d2a71d0826?q=80&w=2070");
-          background-size: cover;
-          background-position: center;
-          padding: 80px 20px;
-          text-align: center;
-          color: #fff;
-        }
-        .hero-content {
-          max-width: 800px;
-          margin: 0 auto;
-        }
-        .hero-title {
-          font-size: 3.5rem;
-          font-weight: 700;
-          margin-bottom: 1rem;
-        }
-        .highlight-text {
-          color: #ff7a59;
-        }
-        .hero-subtitle {
-          font-size: 1.2rem;
-          max-width: 600px;
-          margin: 0 auto 2rem;
-          line-height: 1.6;
-          opacity: 0.9;
-        }
-        .hero-cta-button {
-          background-color: #ff7a59;
-          color: #fff;
-          padding: 15px 35px;
-          border-radius: 50px;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 1.1rem;
-          transition: all 0.3s ease;
-          box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        .hero-cta-button:hover {
-          background-color: #fff;
-          color: #ff7a59;
-          transform: translateY(-3px);
-        }
-
-        /* --- Section Titles & How It Works --- */
-        .section-title {
-          text-align: center;
-          font-size: 2.5rem;
-          font-weight: 600;
-          margin-bottom: 40px;
-          color: #2c5e4a;
-        }
-        .how-it-works-section,
-        .listings-section {
-          padding: 60px 20px;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-        .steps-container {
-          display: flex;
-          justify-content: space-around;
-          gap: 30px;
-          flex-wrap: wrap;
-        }
-        .step {
-          flex: 1;
-          min-width: 250px;
-          text-align: center;
-        }
-        .step-icon {
-          background-color: #2c5e4a;
-          color: #fff;
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 2rem;
-          margin: 0 auto 20px;
-        }
-        .step h3 {
-          font-size: 1.5rem;
-          margin-bottom: 10px;
-          color: #333;
-        }
-        .step p {
-          color: #555;
-          line-height: 1.5;
-        }
-
-        /* --- Food Grid & Card --- */
-        .food-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-          gap: 30px;
-        }
-        .food-card {
-          background-color: #fff;
-          border-radius: 15px;
-          overflow: hidden;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .food-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-        .food-card-image {
-          width: 100%;
-          height: 200px;
-          object-fit: cover;
-        }
-        .food-card-content {
-          padding: 20px;
-        }
-        .food-card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 10px;
-        }
-        .food-card-title {
-          font-size: 1.4rem;
-          font-weight: 600;
-          margin: 0;
-          color: #2c5e4a;
-        }
-        .food-card-timer {
-          background-color: #ffeee8;
-          color: #ff7a59;
-          padding: 5px 10px;
-          border-radius: 20px;
-          font-size: 0.8rem;
-          font-weight: 500;
-          white-space: nowrap;
-        }
-        .food-card-source,
-        .food-card-quantity {
-          color: #666;
-          margin-bottom: 15px;
-          font-size: 0.95rem;
-        }
-        .food-card-source i,
-        .food-card-quantity i {
-          margin-right: 8px;
-          color: #aaa;
-        }
-        .food-card-button {
-          width: 100%;
-          padding: 12px;
-          background-color: #2c5e4a;
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-        .food-card-button:hover {
-          background-color: #1a3a2c;
-        }
-
-        /* --- Responsive Adjustments --- */
-        @media (max-width: 768px) {
-          .hero-title {
-            font-size: 2.5rem;
-          }
-          .hero-subtitle {
-            font-size: 1rem;
-          }
-          .section-title {
-            font-size: 2rem;
-          }
-        }
-      `}</style>
-    </>
+      {/* Call to Action Section */}
+      <section className="cta-section">
+        <div className="cta-content">
+          <h2 className="cta-title">Ready to Make a Difference?</h2>
+          <p className="cta-description">
+            Join thousands of students and organizations already making an impact on campus
+          </p>
+          <div className="cta-buttons">
+            <NavLink to="/browse" className="cta-btn primary-btn">
+              <FaUtensils className="btn-icon" />
+              Start Browsing
+            </NavLink>
+            {(userRole === 'canteen-organizer' || !userRole) && (
+              <NavLink to="/add-food" className="cta-btn secondary-btn">
+                <MdRestaurant className="btn-icon" />
+                List Your Food
+              </NavLink>
+            )}
+          </div>
+        </div>
+        <div className="cta-visual">
+          <div className="visual-circle circle-1"></div>
+          <div className="visual-circle circle-2"></div>
+          <div className="visual-circle circle-3"></div>
+        </div>
+      </section>
+    </div>
+    </div>
   );
 };
 

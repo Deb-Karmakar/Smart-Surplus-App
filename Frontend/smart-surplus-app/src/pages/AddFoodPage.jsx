@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useFood } from '../context/FoodContext';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import './AddFoodPage.css';
 
@@ -26,6 +27,7 @@ const formatLocalDate = (date) => {
 const AddFoodPage = () => {
     const { addFood } = useFood();
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const [formData, setFormData] = useState({
         title: '',
@@ -135,7 +137,7 @@ const AddFoodPage = () => {
             setCurrentStep(4);
         } catch (err) {
             console.error("Error during AI analysis:", err);
-            setError("Sorry, the AI analysis failed. Please check the details and try again, or set the fields manually.");
+            setError(t('addFood.errors.aiFail'));
         } finally {
             setIsAnalyzing(false);
         }
@@ -144,7 +146,7 @@ const AddFoodPage = () => {
     const onSubmit = async e => {
         e.preventDefault();
         if (!imageFile) {
-            alert("Please upload an image for the food listing.");
+            alert(t('addFood.errors.noImage'));
             return;
         }
         setIsSubmitting(true);
@@ -166,11 +168,11 @@ const AddFoodPage = () => {
             if (success) {
                 navigate('/browse');
             } else {
-                setError('Failed to add food listing. Please check the details and try again.');
+                setError(t('addFood.errors.addFail'));
             }
         } catch (err) {
             console.error("Error creating food listing:", err);
-            setError("Failed to upload image or create listing. Please try again.");
+            setError(t('addFood.errors.uploadFail'));
         } finally {
             setIsSubmitting(false);
         }
@@ -179,18 +181,18 @@ const AddFoodPage = () => {
     const isAnalyzeDisabled = !imageFile || !quantity || !foodType || !storageCondition || !preparationTime || isAnalyzing || isSubmitting;
 
     const progressSteps = [
-        { number: 1, title: "Upload Photo", active: currentStep >= 1 },
-        { number: 2, title: "Food Details", active: currentStep >= 2 },
-        { number: 3, title: "AI Analysis", active: currentStep >= 3 },
-        { number: 4, title: "Final Review", active: currentStep >= 4 }
+        { number: 1, title: t('addFood.progress.step1'), active: currentStep >= 1 },
+        { number: 2, title: t('addFood.progress.step2'), active: currentStep >= 2 },
+        { number: 3, title: t('addFood.progress.step3'), active: currentStep >= 3 },
+        { number: 4, title: t('addFood.progress.step4'), active: currentStep >= 4 }
     ];
 
     return (
         <div className="add-food-page">
             <div className="container">
                 <div className="header">
-                    <h1>List Surplus Food</h1>
-                    <p>Help reduce food waste by sharing your surplus food with others</p>
+                    <h1>{t('addFood.title')}</h1>
+                    <p>{t('addFood.subtitle')}</p>
                 </div>
 
                 <div className="progress-bar">
@@ -208,7 +210,7 @@ const AddFoodPage = () => {
                     <div className="form-section">
                         <div className="section-header">
                             <div className="step-badge">1</div>
-                            <h3>Upload Food Photo</h3>
+                            <h3>{t('addFood.sections.upload')}</h3>
                         </div>
                         <div className="image-upload-container">
                             <input 
@@ -223,14 +225,14 @@ const AddFoodPage = () => {
                                     <div className="image-preview">
                                         <img src={imagePreview} alt="Food preview" />
                                         <div className="image-overlay">
-                                            <span>Click to change photo</span>
+                                            <span>{t('addFood.upload.change')}</span>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="upload-placeholder">
                                         <div className="upload-icon">📷</div>
-                                        <h4>Click to upload food photo</h4>
-                                        <p>PNG, JPG up to 10MB</p>
+                                        <h4>{t('addFood.upload.cta')}</h4>
+                                        <p>{t('addFood.upload.ctaSub')}</p>
                                     </div>
                                 )}
                             </label>
@@ -241,48 +243,48 @@ const AddFoodPage = () => {
                     <div className="form-section">
                         <div className="section-header">
                             <div className="step-badge">2</div>
-                            <h3>Enter Food Details</h3>
+                            <h3>{t('addFood.sections.details')}</h3>
                         </div>
                         
                         <div className="form-grid">
                             <div className="form-group">
-                                <label htmlFor="quantity">Available Portions</label>
+                                <label htmlFor="quantity">{t('addFood.labels.quantity')}</label>
                                 <input 
                                     type="number" 
                                     id="quantity"
                                     name="quantity" 
                                     value={quantity} 
                                     onChange={onChange}
-                                    placeholder="e.g., 4"
+                                    placeholder={t('addFood.placeholders.quantity')}
                                     min="1"
                                     required 
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="foodType">Food Category</label>
+                                <label htmlFor="foodType">{t('addFood.labels.foodType')}</label>
                                 <select id="foodType" name="foodType" value={foodType} onChange={onChange}>
-                                    <option value="cooked_meal">🍛 Cooked Meal (Rice, Curry)</option>
-                                    <option value="dairy_sweets">🍰 Dairy / Sweets</option>
-                                    <option value="fried_snacks">🍟 Fried Snacks</option>
-                                    <option value="baked_goods">🥖 Baked Goods (Bread, Puffs)</option>
-                                    <option value="cut_fruits">🥗 Salads & Cut Fruits</option>
-                                    <option value="beverages">🥤 Beverages</option>
+                                    <option value="cooked_meal">{t('addFood.options.foodType.cooked')}</option>
+                                    <option value="dairy_sweets">{t('addFood.options.foodType.dairy')}</option>
+                                    <option value="fried_snacks">{t('addFood.options.foodType.snacks')}</option>
+                                    <option value="baked_goods">{t('addFood.options.foodType.baked')}</option>
+                                    <option value="cut_fruits">{t('addFood.options.foodType.fruits')}</option>
+                                    <option value="beverages">{t('addFood.options.foodType.beverages')}</option>
                                 </select>
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="storageCondition">Storage Condition</label>
+                                <label htmlFor="storageCondition">{t('addFood.labels.storage')}</label>
                                 <select id="storageCondition" name="storageCondition" value={storageCondition} onChange={onChange}>
-                                    <option value="Covered Room Temp">🛡️ Covered (Room Temp)</option>
-                                    <option value="Uncovered Room Temp">⚠️ Uncovered (Room Temp)</option>
-                                    <option value="Refrigerated">❄️ Refrigerated</option>
-                                    <option value="Frozen">🧊 Frozen</option>
+                                    <option value="Covered Room Temp">{t('addFood.options.storage.covered')}</option>
+                                    <option value="Uncovered Room Temp">{t('addFood.options.storage.uncovered')}</option>
+                                    <option value="Refrigerated">{t('addFood.options.storage.refrigerated')}</option>
+                                    <option value="Frozen">{t('addFood.options.storage.frozen')}</option>
                                 </select>
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="preparationTime">Preparation Time</label>
+                                <label htmlFor="preparationTime">{t('addFood.labels.prepTime')}</label>
                                 <input 
                                     type="datetime-local" 
                                     id="preparationTime"
@@ -299,10 +301,10 @@ const AddFoodPage = () => {
                     <div className="form-section ai-section">
                         <div className="section-header">
                             <div className="step-badge">3</div>
-                            <h3>AI Analysis (Optional)</h3>
+                            <h3>{t('addFood.sections.ai')}</h3>
                         </div>
                         <div className="ai-content">
-                            <p>Let our AI analyze your food photo and details to suggest an optimal title and expiry time.</p>
+                            <p>{t('addFood.ai.description')}</p>
                             <button 
                                 type="button" 
                                 onClick={handleAnalyze} 
@@ -312,11 +314,11 @@ const AddFoodPage = () => {
                                 {isAnalyzing ? (
                                     <>
                                         <span className="loading-spinner"></span>
-                                        Analyzing...
+                                        {t('addFood.ai.buttonLoading')}
                                     </>
                                 ) : (
                                     <>
-                                        ✨ Analyze with AI
+                                        {t('addFood.ai.button')}
                                     </>
                                 )}
                             </button>
@@ -327,38 +329,38 @@ const AddFoodPage = () => {
                     <div className="form-section">
                         <div className="section-header">
                             <div className="step-badge">4</div>
-                            <h3>Confirm Details</h3>
+                            <h3>{t('addFood.sections.confirm')}</h3>
                         </div>
                         
                         <div className="form-grid">
                             <div className="form-group">
-                                <label htmlFor="title">Food Title</label>
+                                <label htmlFor="title">{t('addFood.labels.foodTitle')}</label>
                                 <input 
                                     type="text" 
                                     id="title"
                                     name="title" 
                                     value={title} 
                                     onChange={onChange} 
-                                    placeholder="e.g., Vegetable Curry"
+                                    placeholder={t('addFood.placeholders.title')}
                                     required 
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="source">Source/Location</label>
+                                <label htmlFor="source">{t('addFood.labels.source')}</label>
                                 <input 
                                     type="text" 
                                     id="source"
                                     name="source" 
                                     value={source} 
                                     onChange={onChange} 
-                                    placeholder="e.g., Main Canteen"
+                                    placeholder={t('addFood.placeholders.source')}
                                     required 
                                 />
                             </div>
 
                             <div className="form-group full-width">
-                                <label htmlFor="expiresAt">Expires At</label>
+                                <label htmlFor="expiresAt">{t('addFood.labels.expiresAt')}</label>
                                 <input 
                                     type="datetime-local" 
                                     id="expiresAt"
@@ -386,10 +388,10 @@ const AddFoodPage = () => {
                         {isSubmitting ? (
                             <>
                                 <span className="loading-spinner"></span>
-                                Creating Listing...
+                                {t('addFood.submitButton.creating')}
                             </>
                         ) : (
-                            'Create Food Listing'
+                            t('addFood.submitButton.create')
                         )}
                     </button>
                 </form>

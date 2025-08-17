@@ -1,40 +1,82 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next'; // Import
 import { useFood } from '../context/FoodContext.jsx';
 import FoodCard from '../components/food/FoodCard.jsx';
 
 const BrowseFoodPage = () => {
-  const { foodListings, loading } = useFood(); // Use the context to get data
+    const { t } = useTranslation(); // Initialize
+    const { foodListings, loading } = useFood();
+    
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortBy, setSortBy] = useState('expiry');
 
-  return (
-    <>
-      <div className="browse-page-container">
-        <div className="page-header">
-          <h1 className="page-title">Available Surplus Food</h1>
-          <p className="page-subtitle">Find and claim fresh meals from around campus. Act fast before they expire!</p>
-        </div>
+    const displayedFood = useMemo(() => {
+        let filteredList = [...foodListings];
 
-        <div className="filters-container">
-          <div className="search-wrapper">
-            <i className="fas fa-search"></i>
-            <input type="text" placeholder="Search for biryani, sandwiches, etc..." className="search-bar" />
-          </div>
-          <select className="sort-dropdown">
-            <option value="expiry">Sort by: Expiry (Soonest)</option>
-            <option value="recent">Sort by: Newest</option>
-          </select>
-        </div>
+        if (searchTerm) {
+            filteredList = filteredList.filter(item => 
+                item.title.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
 
-        {loading ? (
-          <div className="loading-indicator">Fetching fresh opportunities...</div>
-        ) : (
-          <div className="food-grid">
-            {foodListings.map(item => (
-              <FoodCard key={item.id} foodItem={item} />
-            ))}
-          </div>
-        )}
-      </div>
+        if (sortBy === 'expiry') {
+            filteredList.sort((a, b) => new Date(a.expiresAt) - new Date(b.expiresAt));
+        } else if (sortBy === 'recent') {
+            filteredList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
 
+        return filteredList;
+    }, [foodListings, searchTerm, sortBy]);
+
+
+    return (
+        <>
+            <div className="browse-page-container">
+                <div className="page-header">
+                    <h1 className="page-title">{t('browseFood.title')}</h1>
+                    <p className="page-subtitle">{t('browseFood.subtitle')}</p>
+                </div>
+
+                <div className="filters-container">
+                    <div className="search-wrapper">
+                        <i className="fas fa-search"></i>
+                        <input 
+                            type="text" 
+                            placeholder={t('browseFood.searchPlaceholder')} 
+                            className="search-bar"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <select 
+                        className="sort-dropdown"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                    >
+                        <option value="expiry">{t('browseFood.sortByExpiry')}</option>
+                        <option value="recent">{t('browseFood.sortByNewest')}</option>
+                    </select>
+                </div>
+
+                {loading ? (
+                    <div className="loading-indicator">{t('browseFood.loading')}</div>
+                ) : (
+                    <>
+                        {displayedFood.length > 0 ? (
+                            <div className="food-grid">
+                                {displayedFood.map(item => (
+                                    <FoodCard key={item._id} foodItem={item} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="empty-state">
+                                <h3>{t('browseFood.emptyState.title')}</h3>
+                                <p>{searchTerm ? t('browseFood.emptyState.adjustSearch') : t('browseFood.emptyState.checkBack')}</p>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
 
       <style jsx>{`
         .browse-page-container {

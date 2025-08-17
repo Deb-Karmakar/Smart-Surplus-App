@@ -1,0 +1,191 @@
+{
+  "navbar": {
+    "home": "Home",
+    "surplusFood": "Surplus Food",
+    "dashboard": "Dashboard",
+    "volunteer": "Volunteer",
+    "leaderboard": "Leaderboard",
+    "addFood": "Add Food",
+    "pendingPickups": "Pending Pickups",
+    "reachOut": "Reach Out",
+    "summonVolunteer": "Summon Volunteer",
+    "bookings": "Bookings",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Your Dashboard",
+    "subtitle": "Track your contribution to campus sustainability",
+    "loading": "Loading your dashboard...",
+    "welcomeMessage": "Welcome!",
+    "ngo": {
+      "impactScore": "Impact Score",
+      "ngoPartner": "NGO Partner",
+      "pickupsTitle": "Your Organization's Pickups",
+      "findFood": "Find More Food",
+      "emptyState": "Ready to help your community?"
+    },
+    "organizer": {
+      "loading": "Loading your stats...",
+      "impactTitle": "Your Impact Dashboard",
+      "analyticsLink": "Detailed Analytics",
+      "foodSaved": "Food Saved (Potential)",
+      "basedOnClaims": "Based on all claims",
+      "peopleFed": "People Fed (Potential)",
+      "claimedPending": "Claimed + Pending pickups",
+      "co2Avoided": "CO₂ Footprint Avoided",
+      "environmentalImpact": "Environmental impact",
+      "breakdownTitle": "Pickup Status Breakdown",
+      "confirmedPickups": "Confirmed Pickups",
+      "confirmedDesc": "Students picked up food",
+      "pendingPickups": "Pending Pickups",
+      "pendingDesc": "Awaiting confirmation",
+      "totalClaims": "Total Claims",
+      "totalDesc": "All pickup requests",
+      "actionRequired": "Action Required",
+      "actionRequiredText": "You have {{count}} pending pickup confirmations. Students are waiting to collect their food!",
+      "viewRequests": "View Pickup Requests →",
+      "activeListingsTitle": "Your Active Listings ({{count}})",
+      "addFood": "Add Food",
+      "totalClaimsStat": "Total Claims",
+      "confirmedStat": "Confirmed",
+      "pendingStat": "Pending",
+      "emptyListings": "You have no active food listings. Click \"Add Food\" to help reduce food waste!",
+      "eventsTitle": "Campus Events",
+      "details": "Details",
+      "noEvents": "No upcoming events"
+    },
+    "student": {
+      "redeemModal": {
+        "title": "Redeem Cashback Points",
+        "description": "Convert your volunteer points into canteen discounts.",
+        "balance": "Available Balance:",
+        "pointsToRedeem": "Points to Redeem:",
+        "youWillReceive": "You will receive:",
+        "conversionRate": "Conversion rate: 10 points = ₹1",
+        "cancel": "Cancel",
+        "processing": "Processing...",
+        "confirm": "Confirm Redemption",
+        "errorRange": "Please enter a value between 50 and {{maxPoints}}.",
+        "errorGeneric": "Redemption failed. Please try again."
+      },
+      "levelUp": {
+        "title": "Level Up!",
+        "body": "You've reached Level {{level}}!"
+      },
+      "foodSaver": "Food Saver",
+      "points": "{{count}} points",
+      "pointsToNextLevel": "{{count}} points to next level",
+      "weeklyChallenge": "Weekly Challenge",
+      "challengeTitle": "Claim 5 Food Items",
+      "achievements": "Recent Achievements",
+      "achievementsList": {
+        "firstStep": { "title": "First Step", "desc": "Saved your first meal" },
+        "ecoWarrior": { "title": "Eco Warrior", "desc": "Saved 5 meals" },
+        "greenGuardian": { "title": "Green Guardian", "desc": "Saved 10 meals" },
+        "sustainabilityChampion": { "title": "Sustainability Champion", "desc": "Saved 25 meals" }
+      },
+      "stats": {
+        "mealsSaved": "Meals Saved",
+        "co2Prevented": "CO₂ Prevented",
+        "waterSaved": "Water Saved",
+        "volunteerPoints": "Volunteer Points",
+        "redeem": "Redeem"
+      },
+      "pickupRequests": "Your Pickup Requests",
+      "browseFood": "Browse Food",
+      "emptyRequests": "Ready to start your food saving journey?",
+      "campusEvents": "Campus Events",
+      "noEvents": "No upcoming events"
+    }
+  },
+  "browseFood": {
+    "title": "Available Surplus Food",
+    "subtitle": "Find and claim fresh meals from around campus. Act fast before they expire!",
+    "searchPlaceholder": "Search for biryani, sandwiches, etc...",
+    "sortByExpiry": "Sort by: Expiry (Soonest)",
+    "sortByNewest": "Sort by: Newest",
+    "loading": "Fetching fresh opportunities...",
+    "emptyState": {
+      "title": "No food items found",
+      "adjustSearch": "Try adjusting your search term.",
+      "checkBack": "Check back later for new listings!"
+    }
+  },
+  "addFood": {
+    "title": "List Surplus Food",
+    "subtitle": "Help reduce food waste by sharing your surplus food with others",
+    
+    "progress": {
+      "step1": "Upload Photo",
+      "step2": "Food Details",
+      "step3": "AI Analysis",
+      "step4": "Final Review"
+    },
+    
+    "sections": {
+      "upload": "Upload Food Photo",
+      "details": "Enter Food Details",
+      "ai": "AI Analysis (Optional)",
+      "confirm": "Confirm Details"
+    },
+    
+    "upload": {
+      "change": "Click to change photo",
+      "cta": "Click to upload food photo",
+      "ctaSub": "PNG, JPG up to 10MB"
+    },
+    
+    "labels": {
+      "quantity": "Available Portions",
+      "foodType": "Food Category",
+      "storage": "Storage Condition",
+      "prepTime": "Preparation Time",
+      "foodTitle": "Food Title",
+      "source": "Source/Location",
+      "expiresAt": "Expires At"
+    },
+    
+    "placeholders": {
+      "quantity": "e.g., 4",
+      "title": "e.g., Vegetable Curry",
+      "source": "e.g., Main Canteen"
+    },
+    
+    "options": {
+      "foodType": {
+        "cooked": "🍛 Cooked Meal (Rice, Curry)",
+        "dairy": "🍰 Dairy / Sweets",
+        "snacks": "🍟 Fried Snacks",
+        "baked": "🥖 Baked Goods (Bread, Puffs)",
+        "fruits": "🥗 Salads & Cut Fruits",
+        "beverages": "🥤 Beverages"
+      },
+      "storage": {
+        "covered": "🛡️ Covered (Room Temp)",
+        "uncovered": "⚠️ Uncovered (Room Temp)",
+        "refrigerated": "❄️ Refrigerated",
+        "frozen": "🧊 Frozen"
+      }
+    },
+    
+    "ai": {
+      "description": "Let our AI analyze your food photo and details to suggest an optimal title and expiry time.",
+      "button": "✨ Analyze with AI",
+      "buttonLoading": "Analyzing..."
+    },
+    
+    "submitButton": {
+      "create": "Create Food Listing",
+      "creating": "Creating Listing..."
+    },
+    
+    "errors": {
+      "noImage": "Please upload an image for the food listing.",
+      "aiFail": "Sorry, the AI analysis failed. Please check the details and try again, or set the fields manually.",
+      "addFail": "Failed to add food listing. Please check the details and try again.",
+      "uploadFail": "Failed to upload image or create listing. Please try again."
+    }
+  }
+}

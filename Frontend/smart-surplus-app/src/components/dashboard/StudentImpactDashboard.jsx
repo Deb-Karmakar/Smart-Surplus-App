@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext.jsx';
 import api from '../../services/api';
 import DashboardSummaryCard from '../shared/DashboardSummaryCard.jsx';
@@ -8,15 +9,16 @@ import {
     FaBullseye, FaBoxOpen, FaCalendarAlt, FaHandsHelping, FaBell, FaHandHoldingUsd, FaTimes
 } from 'react-icons/fa';
 
-// --- Redeem Modal Component (Moved here as it's only used by students) ---
+// --- Redeem Modal Component ---
 const RedeemModal = ({ isOpen, onClose, user, onRedeem }) => {
+    const { t } = useTranslation();
     const [pointsToRedeem, setPointsToRedeem] = useState(50);
     const [redeemError, setRedeemError] = useState('');
     const [isRedeeming, setIsRedeeming] = useState(false);
 
     const handleRedeem = async () => {
         if (pointsToRedeem < 50 || pointsToRedeem > user.cashbackPoints) {
-            setRedeemError(`Please enter a value between 50 and ${user.cashbackPoints}.`);
+            setRedeemError(t('dashboard.student.redeemModal.errorRange', { maxPoints: user.cashbackPoints }));
             return;
         }
         
@@ -26,10 +28,10 @@ const RedeemModal = ({ isOpen, onClose, user, onRedeem }) => {
         try {
             const res = await api.post('/redeem', { pointsToRedeem });
             alert(res.data.msg);
-            await onRedeem(); // Refresh user data
+            await onRedeem();
             onClose();
         } catch (err) {
-            setRedeemError(err.response?.data?.msg || 'Redemption failed. Please try again.');
+            setRedeemError(err.response?.data?.msg || t('dashboard.student.redeemModal.errorGeneric'));
         } finally {
             setIsRedeeming(false);
         }
@@ -41,48 +43,31 @@ const RedeemModal = ({ isOpen, onClose, user, onRedeem }) => {
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h3>Redeem Cashback Points</h3>
-                    <button className="modal-close" onClick={onClose}>
-                        <FaTimes />
-                    </button>
+                    <h3>{t('dashboard.student.redeemModal.title')}</h3>
+                    <button className="modal-close" onClick={onClose}><FaTimes /></button>
                 </div>
                 
                 <div className="modal-body">
-                    <p>Convert your volunteer points into canteen discounts.</p>
-                    
+                    <p>{t('dashboard.student.redeemModal.description')}</p>
                     <div className="balance-info">
-                        <span>Available Balance:</span>
-                        <strong>{user.cashbackPoints} points</strong>
+                        <span>{t('dashboard.student.redeemModal.balance')}</span>
+                        <strong>{user.cashbackPoints} {t('dashboard.student.points', { count: '' }).trim()}</strong>
                     </div>
-                    
                     <div className="input-group">
-                        <label>Points to Redeem:</label>
-                        <input 
-                            type="number" 
-                            value={pointsToRedeem}
-                            onChange={(e) => setPointsToRedeem(Number(e.target.value))}
-                            min="50"
-                            max={user.cashbackPoints}
-                            step="10"
-                        />
+                        <label>{t('dashboard.student.redeemModal.pointsToRedeem')}</label>
+                        <input type="number" value={pointsToRedeem} onChange={(e) => setPointsToRedeem(Number(e.target.value))} min="50" max={user.cashbackPoints} step="10" />
                     </div>
-                    
                     <div className="conversion-info">
-                        <p>You will receive: <strong>₹{(pointsToRedeem / 10).toFixed(2)}</strong></p>
-                        <small>Conversion rate: 10 points = ₹1</small>
+                        <p>{t('dashboard.student.redeemModal.youWillReceive')} <strong>₹{(pointsToRedeem / 10).toFixed(2)}</strong></p>
+                        <small>{t('dashboard.student.redeemModal.conversionRate')}</small>
                     </div>
-                    
                     {redeemError && <div className="error-message">{redeemError}</div>}
                 </div>
                 
                 <div className="modal-footer">
-                    <button className="btn-cancel" onClick={onClose}>Cancel</button>
-                    <button 
-                        className="btn-confirm" 
-                        onClick={handleRedeem}
-                        disabled={isRedeeming || pointsToRedeem < 50 || pointsToRedeem > user.cashbackPoints}
-                    >
-                        {isRedeeming ? 'Processing...' : 'Confirm Redemption'}
+                    <button className="btn-cancel" onClick={onClose}>{t('dashboard.student.redeemModal.cancel')}</button>
+                    <button className="btn-confirm" onClick={handleRedeem} disabled={isRedeeming || pointsToRedeem < 50 || pointsToRedeem > user.cashbackPoints}>
+                        {isRedeeming ? t('dashboard.student.redeemModal.processing') : t('dashboard.student.redeemModal.confirm')}
                     </button>
                 </div>
             </div>
@@ -90,8 +75,17 @@ const RedeemModal = ({ isOpen, onClose, user, onRedeem }) => {
     );
 };
 
+// --- A constant array defining all possible achievements ---
+const ALL_ACHIEVEMENTS = [
+    { id: 'firstStep', mealsRequired: 1, Icon: FaSeedling },
+    { id: 'ecoWarrior', mealsRequired: 5, Icon: FaLeaf },
+    { id: 'greenGuardian', mealsRequired: 10, Icon: FaTree },
+    { id: 'sustainabilityChampion', mealsRequired: 25, Icon: FaTrophy },
+];
+
 // --- Student Impact Dashboard Component ---
 const StudentImpactDashboard = ({ user, myClaimedItems, campusEvents }) => {
+    const { t, ready } = useTranslation();
     const { loadUser } = useAuth();
     const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
     const [showLevelUp, setShowLevelUp] = useState(false);
@@ -101,17 +95,8 @@ const StudentImpactDashboard = ({ user, myClaimedItems, campusEvents }) => {
     const waterSaved = (mealsSaved * 250 / 1000).toFixed(1);
     const pointsInCurrentLevel = (user.points || 0) % 100;
     const progressPercentage = (pointsInCurrentLevel / 100) * 100;
-    const weeklyChallenge = user.weeklyChallenge || { progress: 0, goal: 5, reward: 200, title: 'Claim 5 Food Items' };
+    const weeklyChallenge = user.weeklyChallenge || { progress: 0, goal: 5, reward: 200, title: t('dashboard.student.challengeTitle') };
     const challengeProgress = (weeklyChallenge.progress / weeklyChallenge.goal) * 100;
-
-    const getAchievementBadges = () => {
-        const badges = [];
-        if (mealsSaved >= 1) badges.push({ icon: <FaSeedling />, title: 'First Step', desc: 'Saved your first meal' });
-        if (mealsSaved >= 5) badges.push({ icon: <FaLeaf />, title: 'Eco Warrior', desc: 'Saved 5 meals' });
-        if (mealsSaved >= 10) badges.push({ icon: <FaTree />, title: 'Green Guardian', desc: 'Saved 10 meals' });
-        if (mealsSaved >= 25) badges.push({ icon: <FaTrophy />, title: 'Sustainability Champion', desc: 'Saved 25 meals' });
-        return badges.slice(-3);
-    };
 
     const handleRedeemSuccess = async () => {
         await loadUser();
@@ -124,13 +109,47 @@ const StudentImpactDashboard = ({ user, myClaimedItems, campusEvents }) => {
         }
     }, [user.points, pointsInCurrentLevel]);
 
+    const earnedBadges = ALL_ACHIEVEMENTS
+        .filter(ach => mealsSaved >= ach.mealsRequired)
+        .slice(-3);
+
+    const renderAchievements = () => {
+        if (!ready) {
+            return null;
+        }
+
+        return (
+            <div className="badges-grid">
+                {earnedBadges.map((badge) => (
+                    <div key={badge.id} className="badge earned">
+                        <div className="badge-icon"><badge.Icon /></div>
+                        <div>
+                            <h5>{t(`dashboard.student.achievementsList.${badge.id}.title`)}</h5>
+                            <p>{t(`dashboard.student.achievementsList.${badge.id}.desc`)}</p>
+                        </div>
+                    </div>
+                ))}
+                
+                {earnedBadges.length === 0 && (
+                    <div className="badge locked">
+                        <div className="badge-icon"><FaLock /></div>
+                        <div>
+                            <h5>{t('dashboard.student.achievementsList.firstStep.title')}</h5>
+                            <p>{t('dashboard.student.achievementsList.firstStep.desc')}</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     return (
         <>
             {showLevelUp && (
                 <div className="level-up-notification">
                     <FaTrophy className="level-up-icon" />
-                    <h3>Level Up!</h3>
-                    <p>You've reached Level {user.level || 1}!</p>
+                    <h3>{t('dashboard.student.levelUp.title')}</h3>
+                    <p>{t('dashboard.student.levelUp.body', { level: user.level || 1 })}</p>
                 </div>
             )}
 
@@ -143,18 +162,17 @@ const StudentImpactDashboard = ({ user, myClaimedItems, campusEvents }) => {
                                 <circle 
                                     cx="60" cy="60" r="50" 
                                     className="ring-progress"
-                                    style={{ 
-                                        strokeDasharray: '314',
-                                        strokeDashoffset: `${314 - (314 * progressPercentage) / 100}`
-                                    }}
+                                    style={{ strokeDasharray: '314', strokeDashoffset: `${314 - (314 * progressPercentage) / 100}` }}
                                 />
                             </svg>
                             <div className="level-number">{user.level || 1}</div>
                         </div>
                         <div className="level-info">
-                            <h3>{user.title || 'Food Saver'}</h3>
-                            <div className="points">{user.points || 0} points</div>
-                            <small>{100 - pointsInCurrentLevel} points to next level</small>
+                            {/* --- THIS IS THE FIX --- */}
+                            <h3>{user.title === 'Food Saver' ? t('dashboard.student.foodSaver') : (user.title || t('dashboard.student.foodSaver'))}</h3>
+                            
+                            <div className="points">{t('dashboard.student.points', { count: user.points || 0 })}</div>
+                            <small>{t('dashboard.student.pointsToNextLevel', { count: 100 - pointsInCurrentLevel })}</small>
                         </div>
                     </div>
                 </div>
@@ -163,15 +181,12 @@ const StudentImpactDashboard = ({ user, myClaimedItems, campusEvents }) => {
                     <div className="challenge-header">
                         <FaBullseye className="challenge-icon" />
                         <div>
-                            <h4>Weekly Challenge</h4>
+                            <h4>{t('dashboard.student.weeklyChallenge')}</h4>
                             <p>{weeklyChallenge.title}</p>
                         </div>
                     </div>
                     <div className="progress-bar">
-                        <div 
-                            className="progress-fill"
-                            style={{ width: `${challengeProgress}%` }}
-                        />
+                        <div className="progress-fill" style={{ width: `${challengeProgress}%` }} />
                     </div>
                     <div className="challenge-stats">
                         <span>{weeklyChallenge.progress}/{weeklyChallenge.goal}</span>
@@ -181,27 +196,8 @@ const StudentImpactDashboard = ({ user, myClaimedItems, campusEvents }) => {
             </div>
 
             <section className="achievements-section">
-                <h2>Recent Achievements</h2>
-                <div className="badges-grid">
-                    {getAchievementBadges().map((badge, index) => (
-                        <div key={index} className="badge earned">
-                            <div className="badge-icon">{badge.icon}</div>
-                            <div>
-                                <h5>{badge.title}</h5>
-                                <p>{badge.desc}</p>
-                            </div>
-                        </div>
-                    ))}
-                    {getAchievementBadges().length === 0 && (
-                        <div className="badge locked">
-                            <div className="badge-icon"><FaLock /></div>
-                            <div>
-                                <h5>First Step</h5>
-                                <p>Save your first meal</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <h2>{t('dashboard.student.achievements')}</h2>
+                {renderAchievements()}
             </section>
 
             <section className="stats-section">
@@ -209,28 +205,28 @@ const StudentImpactDashboard = ({ user, myClaimedItems, campusEvents }) => {
                     <div className="stat-card">
                         <FaUtensils className="stat-icon" />
                         <h3>{mealsSaved}</h3>
-                        <p>Meals Saved</p>
+                        <p>{t('dashboard.student.stats.mealsSaved')}</p>
                     </div>
                     <div className="stat-card">
                         <FaGlobe className="stat-icon" />
                         <h3>{co2Prevented} kg</h3>
-                        <p>CO₂ Prevented</p>
+                        <p>{t('dashboard.student.stats.co2Prevented')}</p>
                     </div>
                     <div className="stat-card">
                         <FaWater className="stat-icon" />
                         <h3>{waterSaved} kL</h3>
-                        <p>Water Saved</p>
+                        <p>{t('dashboard.student.stats.waterSaved')}</p>
                     </div>
                     <div className="stat-card cashback-card">
                         <FaHandHoldingUsd className="stat-icon" />
                         <h3>{user.cashbackPoints || 0}</h3>
-                        <p>Volunteer Points</p>
+                        <p>{t('dashboard.student.stats.volunteerPoints')}</p>
                         <button 
                             className="redeem-button"
                             onClick={() => setIsRedeemModalOpen(true)}
                             disabled={(user.cashbackPoints || 0) < 50}
                         >
-                            Redeem
+                            {t('dashboard.student.stats.redeem')}
                         </button>
                     </div>
                 </div>
@@ -239,8 +235,8 @@ const StudentImpactDashboard = ({ user, myClaimedItems, campusEvents }) => {
             <div className="action-grid">
                 <div className="action-card">
                     <div className="card-header">
-                        <h3><FaBoxOpen /> Your Pickup Requests</h3>
-                        <Link to="/browse" className="btn-primary">Browse Food</Link>
+                        <h3><FaBoxOpen /> {t('dashboard.student.pickupRequests')}</h3>
+                        <Link to="/browse" className="btn-primary">{t('dashboard.student.browseFood')}</Link>
                     </div>
                     <div className="card-body">
                         {myClaimedItems.length > 0 ? (
@@ -254,7 +250,7 @@ const StudentImpactDashboard = ({ user, myClaimedItems, campusEvents }) => {
                         ) : (
                             <div className="empty-state">
                                 <FaUtensils className="empty-icon" />
-                                <p>Ready to start your food saving journey?</p>
+                                <p>{t('dashboard.student.emptyRequests')}</p>
                             </div>
                         )}
                     </div>
@@ -262,7 +258,7 @@ const StudentImpactDashboard = ({ user, myClaimedItems, campusEvents }) => {
 
                 <div className="action-card">
                     <div className="card-header">
-                        <h3><FaCalendarAlt /> Campus Events</h3>
+                        <h3><FaCalendarAlt /> {t('dashboard.student.campusEvents')}</h3>
                         <button className="btn-secondary"><FaBell /></button>
                     </div>
                     <div className="card-body">
@@ -283,7 +279,7 @@ const StudentImpactDashboard = ({ user, myClaimedItems, campusEvents }) => {
                         ) : (
                             <div className="empty-state">
                                 <FaCalendarAlt className="empty-icon" />
-                                <p>No upcoming events</p>
+                                <p>{t('dashboard.student.noEvents')}</p>
                             </div>
                         )}
                     </div>

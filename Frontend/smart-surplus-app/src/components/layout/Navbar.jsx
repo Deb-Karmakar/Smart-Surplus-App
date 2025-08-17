@@ -2,28 +2,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useNotifications } from '../../context/NotificationContext.jsx';
+import { useTranslation } from 'react-i18next';
 import { 
-  FaHome, 
-  FaUtensils, 
-  FaUserCircle, 
-  FaHandsHelping, 
-  FaTrophy, 
-  FaPlusCircle, 
-  FaTachometerAlt, 
-  FaTruck, 
-  FaShippingFast, 
-  FaClipboardCheck, 
-  FaBell, 
-  FaUser, 
-  FaSignOutAlt, 
-  FaSignInAlt, 
-  FaUserPlus 
+  FaHome, FaUtensils, FaUserCircle, FaHandsHelping, FaTrophy, FaPlusCircle, 
+  FaTachometerAlt, FaTruck, FaShippingFast, FaClipboardCheck, FaBell, FaUser, 
+  FaSignOutAlt, FaSignInAlt, FaUserPlus, FaGlobe
 } from 'react-icons/fa';
 import './Navbar.css';
 
 const Navbar = () => {
+  const { t, i18n } = useTranslation();
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
   const [activeIndicatorStyle, setActiveIndicatorStyle] = useState({});
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -42,29 +34,34 @@ const Navbar = () => {
     setIsNavCollapsed(true);
   };
 
-  // Dynamic Navigation Links
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+    setLangDropdownOpen(false);
+    setIsNavCollapsed(true);
+  };
+
   const baseLinks = [
-    { name: 'Home', path: '/', icon: FaHome },
-    { name: 'Surplus Food', path: '/browse', icon: FaUtensils },
+    { name: t('navbar.home'), path: '/', icon: FaHome },
+    { name: t('navbar.surplusFood'), path: '/browse', icon: FaUtensils },
   ];
 
   const studentLinks = [
-    { name: 'Dashboard', path: '/dashboard', icon: FaUserCircle },
-    { name: 'Volunteer', path: '/volunteer', icon: FaHandsHelping },
-    { name: 'Leaderboard', path: '/leaderboard', icon: FaTrophy },
+    { name: t('navbar.dashboard'), path: '/dashboard', icon: FaUserCircle },
+    { name: t('navbar.volunteer'), path: '/volunteer', icon: FaHandsHelping },
+    { name: t('navbar.leaderboard'), path: '/leaderboard', icon: FaTrophy },
   ];
 
   const organizerLinks = [
-    { name: 'Add Food', path: '/add-food', icon: FaPlusCircle },
-    { name: 'Dashboard', path: '/dashboard', icon: FaTachometerAlt },
-    { name: 'Pending Pickups', path: '/pending-pickups', icon: FaTruck },
-    { name: 'Reach Out', path: '/reach-out', icon: FaHandsHelping },
-    { name: 'Summon Volunteer', path: '/summon-volunteer', icon: FaShippingFast },
+    { name: t('navbar.addFood'), path: '/add-food', icon: FaPlusCircle },
+    { name: t('navbar.dashboard'), path: '/dashboard', icon: FaTachometerAlt },
+    { name: t('navbar.pendingPickups'), path: '/pending-pickups', icon: FaTruck },
+    { name: t('navbar.reachOut'), path: '/reach-out', icon: FaHandsHelping },
+    { name: t('navbar.summonVolunteer'), path: '/summon-volunteer', icon: FaShippingFast },
   ];
 
   const ngoLinks = [
-    { name: 'Dashboard', path: '/dashboard', icon: FaTachometerAlt },
-    { name: 'Bookings', path: '/bookings', icon: FaClipboardCheck },
+    { name: t('navbar.dashboard'), path: '/dashboard', icon: FaTachometerAlt },
+    { name: t('navbar.bookings'), path: '/bookings', icon: FaClipboardCheck },
   ];
   
   let navLinks = baseLinks;
@@ -76,7 +73,7 @@ const Navbar = () => {
     navLinks = [...baseLinks, ...ngoLinks];
   }
 
-  // Update active indicator position
+  // This useEffect contains all the logic for the animated indicator
   useEffect(() => {
     const updateActiveIndicator = () => {
       const activeLink = navRef.current?.querySelector('.nav-link.active');
@@ -99,25 +96,21 @@ const Navbar = () => {
       }
     };
 
-    // Initial update
     updateActiveIndicator();
-
-    // Delay for route transition
     const timer = setTimeout(updateActiveIndicator, 150);
     
-    // Handle window resize
     window.addEventListener('resize', updateActiveIndicator);
     
     return () => {
       clearTimeout(timer);
       window.removeEventListener('resize', updateActiveIndicator);
     };
-  }, [location.pathname, isNavCollapsed, user]);
+    // CRITICAL CHANGE: Added i18n.language to ensure the effect re-runs on language change
+  }, [location.pathname, isNavCollapsed, user, i18n.language]);
 
   return (
     <nav className="zerobite-navbar">
       <div className="navbar-container">
-        {/* Logo */}
         <NavLink className="navbar-brand" to="/" aria-label="ZeroBite Home">
           <div className="logo-container">
             <span className="logo-text">
@@ -127,7 +120,6 @@ const Navbar = () => {
           </div>
         </NavLink>
 
-        {/* Mobile Toggle */}
         <button 
           className="mobile-toggle"
           onClick={handleNavCollapse}
@@ -140,9 +132,7 @@ const Navbar = () => {
           </span>
         </button>
 
-        {/* Navigation Menu */}
         <div className={`navbar-menu ${!isNavCollapsed ? 'active' : ''}`}>
-          {/* Main Navigation Links */}
           <div className="main-nav-links" ref={navRef}>
             <div 
               className="active-indicator" 
@@ -165,11 +155,21 @@ const Navbar = () => {
             })}
           </div>
 
-          {/* Auth Section */}
           <div className="auth-section">
+            <div className="language-selector">
+              <button onClick={() => setLangDropdownOpen(!langDropdownOpen)} className="icon-button" aria-label="Change language">
+                <FaGlobe />
+              </button>
+              {langDropdownOpen && (
+                <div className="language-dropdown">
+                  <button onClick={() => changeLanguage('en')}>English</button>
+                  <button onClick={() => changeLanguage('hi')}>हिन्दी (Hindi)</button>
+                </div>
+              )}
+            </div>
+            
             {user ? (
               <div className="user-controls">
-                {/* Notifications Bell */}
                 <NavLink 
                   to="/notifications" 
                   className="notification-btn"
@@ -181,8 +181,6 @@ const Navbar = () => {
                     <span className="notification-badge">{unreadCount}</span>
                   )}
                 </NavLink>
-
-                {/* User Profile */}
                 <div className="user-profile">
                   <button 
                     onClick={handleProfileClick}
@@ -195,22 +193,20 @@ const Navbar = () => {
                     <span className="user-name">{user.name}</span>
                   </button>
                 </div>
-
-                {/* Logout Button */}
                 <button onClick={handleLogout} className="logout-btn">
                   <FaSignOutAlt />
-                  <span>Logout</span>
+                  <span>{t('navbar.logout')}</span>
                 </button>
               </div>
             ) : (
               <div className="auth-links">
                 <NavLink className="auth-link login-link" to="/login">
                   <FaSignInAlt />
-                  <span>Login</span>
+                  <span>{t('navbar.login')}</span>
                 </NavLink>
                 <NavLink className="auth-link register-link" to="/register">
                   <FaUserPlus />
-                  <span>Register</span>
+                  <span>{t('navbar.register')}</span>
                 </NavLink>
               </div>
             )}

@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useFood } from '../context/FoodContext.jsx';
 import { FaLeaf } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 
 // Import the new dashboard components
 import StudentImpactDashboard from '../components/dashboard/StudentImpactDashboard.jsx';
@@ -13,16 +14,16 @@ import './DashboardPage.css';
 
 // --- Main Dashboard Page Component ---
 const DashboardPage = () => {
+    const { t } = useTranslation();
     const { user } = useAuth();
     const { myClaimedItems, campusEvents } = useFood();
 
-    // The loading state is now handled inside each specific dashboard component
-    // except for the initial user load.
     if (!user) {
         return (
             <div className="loading-container">
                 <div className="loading-spinner" />
-                <p>Loading your dashboard...</p>
+                {/* CHANGED: Translated loading text */}
+                <p>{t('dashboard.loading')}</p>
             </div>
         );
     }
@@ -49,7 +50,8 @@ const DashboardPage = () => {
                 return (
                     <div className="welcome-card">
                         <FaLeaf className="welcome-icon" />
-                        <h3>Welcome!</h3>
+                        {/* CHANGED: Translated welcome message */}
+                        <h3>{t('dashboard.welcomeMessage')}</h3>
                     </div>
                 );
         }
@@ -59,8 +61,10 @@ const DashboardPage = () => {
         <div className="dashboard-page-wrapper">
             <div className="dashboard-container">
                 <header className="page-header">
-                    <h1>Your Dashboard</h1>
-                    <p>Track your contribution to campus sustainability</p>
+                    {/* CHANGED: Translated title */}
+                    <h1>{t('dashboard.title')}</h1>
+                    {/* CHANGED: Translated subtitle */}
+                    <p>{t('dashboard.subtitle')}</p>
                 </header>
                 {renderDashboardByRole()}
             </div>
