@@ -187,5 +187,99 @@
       "addFail": "Failed to add food listing. Please check the details and try again.",
       "uploadFail": "Failed to upload image or create listing. Please try again."
     }
+  },
+   "homePage": {
+    "hero": {
+      "badge": "Zero Waste Campus Initiative",
+      "title": "Don't Waste,",
+      "highlight": "Share the Taste",
+      "subtitles": {
+        "organizer": "Transform your surplus food into community impact. List your excess inventory and help reduce waste while feeding those in need.",
+        "student": "Discover fresh, affordable meals from campus canteens and events. Never let good food go to waste while satisfying your hunger.",
+        "ngo": "Connect with surplus food sources to support your community programs. Help bridge the gap between food waste and food security.",
+        "default": "Join our mission to eliminate food waste on campus. Whether you're sharing surplus or finding your next meal, every action counts."
+      },
+      "cta": {
+        "listFood": "List Surplus Food",
+        "browseFood": "Browse Available Food",
+        "findFood": "Find Food to Distribute"
+      },
+      "stats": {
+        "mealsSaved": "Meals Saved",
+        "activeMembers": "Active Members",
+        "wasteReduction": "Waste Reduction"
+      },
+      "cards": {
+        "fresh": "Fresh Meals",
+        "waste": "Zero Waste",
+        "community": "Community"
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Three simple steps to make a difference in your community",
+      "steps": {
+        "discoverTitle": "Discover",
+        "discoverDesc": "Browse real-time listings of surplus food from campus canteens, events, and dining halls with detailed information and pickup times.",
+        "claimTitle": "Claim",
+        "claimDesc": "Reserve your portion instantly with our smart booking system. Get confirmation and pickup details delivered to your phone.",
+        "collectTitle": "Collect",
+        "collectDesc": "Visit the pickup location within your time window and enjoy fresh, quality food while contributing to sustainability."
+      }
+    },
+    "features": {
+      "title": "Why Choose ZeroBite?",
+      "subtitle": "Built for the modern campus community with sustainability in mind",
+      "cards": {
+        "qualityTitle": "Quality Assured",
+        "qualityDesc": "All listed food items are fresh and safe, with clear expiry times and quality standards maintained.",
+        "impactTitle": "Environmental Impact",
+        "impactDesc": "Reduce food waste by up to 95% and contribute to a more sustainable campus ecosystem.",
+        "communityTitle": "Community Building",
+        "communityDesc": "Connect with fellow students, staff, and local organizations to build a stronger community network."
+      }
+    },
+    "finalCta": {
+      "title": "Ready to Make a Difference?",
+      "description": "Join thousands of students and organizations already making an impact on campus",
+      "browse": "Start Browsing",
+      "list": "List Your Food"
+    }
+  },
+   "analyticsPage": {
+  "loading": "Loading analytics...",
+  "title": "Your Detailed Analytics",
+  "subtitle": "An overview of your food redistribution efforts and impact.",
+  "timeRanges": {
+    "thisWeek": "This Week",
+    "lastWeek": "Last Week",
+    "lastMonth": "Last Month"
+  },
+  "stats": {
+    "foodSaved": "Food Saved",
+    "peopleFed": "People Fed",
+    "co2Prevented": "CO₂ Prevented"
+  },
+  "charts": {
+    "listingStatus": "Listing Status",
+    "popularTypes": "Popular Food Types",
+    "weeklyActivity": "Weekly Listing Activity",
+    "barName": "Food Items Listed"
+  },
+  "dataLabels": {
+    "status": {
+      "claimed": "Successfully Claimed",
+      "expired": "Expired / Unclaimed"
+    },
+    "foodTypes": {
+      "cooked_meal": "Cooked Meal",
+      "dairy_sweets": "Dairy / Sweets",
+      "fried_snacks": "Fried Snacks",
+      "baked_goods": "Baked Goods",
+      "cut_fruits": "Salads & Fruits",
+      "beverages": "Beverages"
+    },
+    "days": { "sun": "Sun", "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat" }
   }
+}
 }
