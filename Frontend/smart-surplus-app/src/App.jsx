@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route } from 'react-router-dom'; // Changed import
+import { Routes, Route } from 'react-router-dom';
 import { FoodProvider } from './context/FoodContext.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { NotificationProvider } from './context/NotificationContext.jsx';
 import axios from 'axios';
 import { subscribeUser } from './services/pushService.js';
-
 
 import './App.css';
 // Import Components
@@ -29,13 +28,14 @@ import VolunteerPage from './pages/VolunteerPage.jsx';
 import SummonVolunteerPage from './pages/SummonVolunteerPage.jsx';
 import BookingsPage from './pages/BookingsPage.jsx';
 import PendingPickupsPage from './pages/PendingPickupsPage.jsx';
+import AddEventPage from './pages/AddEventPage.jsx';
 
 // A component to handle the subscription logic
 const PushSubscriptionHandler = () => {
   const { isAuthenticated, user } = useAuth();
-  const [subscriptionAttempted, setSubscriptionAttempted] = useState(false);
+  const [subscriptionAttempted, setSubscriptionAttempted] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isAuthenticated && user && !subscriptionAttempted) {
       setSubscriptionAttempted(true);
       
@@ -55,9 +55,9 @@ const PushSubscriptionHandler = () => {
 };
 
 const App = () => {
-  const [backendStatus, setBackendStatus] = useState('');
+  const [backendStatus, setBackendStatus] = React.useState('');
 
-  useEffect(() => {
+  React.useEffect(() => {
     axios.get('http://localhost:5000/api/test')
       .then(res => setBackendStatus(res.data.message))
       .catch(err => {
@@ -70,7 +70,6 @@ const App = () => {
     <AuthProvider>
       <NotificationProvider>
         <FoodProvider>
-          {/* The <Router> component has been removed from here */}
           <Navbar />
           <PushSubscriptionHandler />
           
@@ -92,6 +91,10 @@ const App = () => {
               <Route path="/dashboard" element={ <ProtectedRoute> <DashboardPage /> </ProtectedRoute> } />
               <Route path="/notifications" element={ <ProtectedRoute> <NotificationsPage /> </ProtectedRoute> } />
               <Route path="/add-food" element={ <ProtectedRoute allowedRoles={['canteen-organizer']}> <AddFoodPage /> </ProtectedRoute> } />
+              
+              {/* --- Added the new route here --- */}
+              <Route path="/add-event" element={ <ProtectedRoute allowedRoles={['canteen-organizer']}> <AddEventPage /> </ProtectedRoute> } />
+
               <Route path="/analytics" element={ <ProtectedRoute allowedRoles={['canteen-organizer']}> <AnalyticsPage /> </ProtectedRoute> } />
               <Route path="/reach-out" element={ <ProtectedRoute allowedRoles={['canteen-organizer']}> <ReachOutPage /> </ProtectedRoute> } />
               <Route
@@ -119,7 +122,6 @@ const App = () => {
                 }
               />
               
-              {/* --- ADD THE NEW ROUTE FOR PENDING PICKUPS --- */}
               <Route
                 path="/pending-pickups"
                 element={

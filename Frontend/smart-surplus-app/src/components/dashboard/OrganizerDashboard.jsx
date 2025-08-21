@@ -199,6 +199,14 @@ const OrganizerDashboard = ({ user, campusEvents }) => {
                         campusEvents.map(event => (
                             <div key={event._id} className="event-card">
                                 <h4>{event.title}</h4>
+                                {/* I've added the event date display below */}
+                                <p style={{ fontSize: '0.9rem', color: '#555', margin: '8px 0' }}>
+                                    {new Date(event.date).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                    })}
+                                </p>
                                 <Link to={`/events/${event._id}`} className="btn-primary">{t('dashboard.organizer.details')}</Link>
                             </div>
                         ))

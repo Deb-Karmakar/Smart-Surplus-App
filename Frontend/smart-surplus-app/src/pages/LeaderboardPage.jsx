@@ -1,63 +1,84 @@
-import React, { useMemo } from 'react';
-import { useAuth } from '../context/AuthContext.jsx';
+import React, { useState, useEffect } from 'react';
+import api from '../services/api'; // This will connect to your actual backend API
 
 // A small component for the medal icons
 const RankIcon = ({ rank }) => {
-  if (rank === 0) return <span>🥇</span>;
-  if (rank === 1) return <span>🥈</span>;
-  if (rank === 2) return <span>🥉</span>;
-  return <span className="rank-number">{rank + 1}</span>;
+  if (rank === 0) return <span className="text-3xl">🥇</span>;
+  if (rank === 1) return <span className="text-3xl">🥈</span>;
+  if (rank === 2) return <span className="text-3xl">🥉</span>;
+  return <span className="text-xl text-gray-500 font-semibold">{rank + 1}</span>;
 };
 
 const LeaderboardPage = () => {
-  const { users } = useAuth();
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const sortedUsers = useMemo(() => {
-    // Make sure users is an array before trying to sort
-    if (!Array.isArray(users)) return [];
-    return [...users].sort((a, b) => b.points - a.points);
-  }, [users]);
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        setIsLoading(true);
+        // Fetches real data from your /api/leaderboard endpoint
+        const res = await api.get('/leaderboard');
+        setLeaderboard(res.data);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch leaderboard:', err);
+        setError('Could not load the leaderboard. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLeaderboard();
+  }, []);
+
+  if (isLoading) {
+    return <div className="text-center py-20 text-xl text-gray-500">Loading Leaderboard...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-20 text-xl text-red-500">{error}</div>;
+  }
 
   return (
-    <>
-      <div className="leaderboard-container">
-        <div className="page-header">
-          <h1 className="page-title">Top Food Rescuers</h1>
-          <p className="page-subtitle">A big thank you to our most active community members!</p>
+    <div className="bg-gray-50 min-h-screen">
+      <div className="max-w-3xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-800 tracking-tight">
+            Top Food Rescuers
+          </h1>
+          <p className="mt-4 text-lg text-gray-600">
+            A big thank you to our most active community members!
+          </p>
         </div>
-        <div className="leaderboard">
-          {sortedUsers.map((user, index) => (
-            <div key={user.id} className="leaderboard-row">
-              <div className="rank">
-                <RankIcon rank={index} />
+        
+        <div className="space-y-4">
+          {leaderboard.length > 0 ? (
+            leaderboard.map((user, index) => (
+              <div 
+                key={user._id} 
+                className="flex items-center bg-white p-4 rounded-xl shadow-md transition-transform transform hover:scale-105"
+              >
+                <div className="w-16 text-center text-2xl font-bold text-gray-700">
+                  <RankIcon rank={index} />
+                </div>
+                <div className="flex-grow ml-4">
+                  <p className="text-lg font-semibold text-gray-900">{user.name}</p>
+                </div>
+                <div className="text-xl font-bold text-emerald-600">
+                  {user.points} pts
+                </div>
               </div>
-              <div className="user-name">{user.name}</div>
-              <div className="user-points">{user.points} pts</div>
+            ))
+          ) : (
+            <div className="text-center py-20 text-xl text-gray-500">
+              The leaderboard is empty. Be the first to earn points!
             </div>
-          ))}
+          )}
         </div>
       </div>
-      <style jsx>{`
-        .leaderboard-container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
-        .page-header { text-align: center; margin-bottom: 40px; }
-        .page-title { font-size: 2.8rem; font-weight: 700; color: #2C5E4A; margin: 0; }
-        .page-subtitle { font-size: 1.1rem; color: #555; }
-        .leaderboard { display: grid; gap: 10px; }
-        .leaderboard-row { display: flex; align-items: center; background: #fff; padding: 15px 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .rank { font-size: 1.5rem; font-weight: 700; color: #FF7A59; width: 50px; text-align: center; }
-        .rank-number { font-size: 1.2rem; color: #555; }
-        
-        /* --- FIX: Made the selector more specific to prevent overrides --- */
-        .leaderboard-row .user-name { 
-          flex-grow: 1; 
-          font-size: 1.1rem; 
-          font-weight: 500;
-          color: #333 !important; /* Use a dark color */
-        }
-        
-        .user-points { font-size: 1.2rem; font-weight: 600; color: #2C5E4A; }
-      `}</style>
-    </>
+    </div>
   );
 };
 

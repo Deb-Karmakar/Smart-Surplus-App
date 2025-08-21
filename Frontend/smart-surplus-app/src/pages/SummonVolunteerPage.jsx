@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next'; // Import
 import api from '../services/api';
 import { useFood } from '../context/FoodContext.jsx';
 import { useNavigate } from 'react-router-dom';
-import { FaUtensils, FaMapMarkerAlt, FaPaperPlane, FaSpinner } from 'react-icons/fa';
+import { FaUtensils, FaMapMarkerAlt, FaPaperPlane, FaSpinner, FaLeaf, FaHeart } from 'react-icons/fa';
 
 const SummonVolunteerPage = () => {
+    const { t } = useTranslation(); // Initialize
     const { foodListings } = useFood();
     const [formData, setFormData] = useState({
         foodItem: '', pickupLocation: 'Main Canteen', dropOffLocation: ''
     });
     const [status, setStatus] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false); // Use a boolean for loading state
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -18,59 +21,88 @@ const SummonVolunteerPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setStatus('Finding a volunteer...');
+        setIsSubmitting(true);
+        setStatus(t('summonPage.status.finding'));
         try {
             const res = await api.post('/deliveries/request', formData);
-            setStatus(res.data.msg);
+            setStatus(res.data.msg); // API should return a success message
             setTimeout(() => navigate('/dashboard'), 2500);
         } catch (err) {
-            setStatus(err.response?.data?.msg || 'Request failed. Please try again.');
+            setStatus(err.response?.data?.msg || t('summonPage.status.fail'));
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="form-container">
-            <div className="form-wrapper">
-                <h2><FaPaperPlane /> Summon a Delivery Volunteer</h2>
-                <p>Find an available volunteer to deliver surplus food to a nearby NGO.</p>
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label><FaUtensils /> Select Food Item</label>
-                        <select name="foodItem" onChange={handleChange} required>
-                            <option value="">Select from available listings...</option>
+        <div className="min-h-screen bg-gradient-to-br from-[#1A3C34] to-[#2E4F4F] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+            {/* Animated Background Icons */}
+            <div className="absolute inset-0 pointer-events-none">
+                <FaLeaf className="absolute text-[#A3BFFA] text-4xl float-animation opacity-20" style={{ left: '10%', top: '20%', animationDelay: '0s' }} />
+                <FaHeart className="absolute text-[#FF6F61] text-4xl float-animation opacity-20" style={{ right: '15%', top: '40%', animationDelay: '2s' }} />
+                <FaUtensils className="absolute text-[#F28C38] text-4xl float-animation opacity-20" style={{ left: '20%', bottom: '25%', animationDelay: '4s' }} />
+            </div>
+
+            <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-2xl transform transition-all duration-300 hover:shadow-3xl relative z-10">
+                <div className="text-center">
+                    <h2 className="text-3xl font-bold text-[#2C5E4A] mb-2 flex items-center justify-center gap-2">
+                        <FaPaperPlane /> {t('summonPage.title')}
+                    </h2>
+                    <p className="text-lg text-gray-600">{t('summonPage.subtitle')}</p>
+                    <div className="mt-4 flex justify-center">
+                        <div className="w-16 h-1 bg-[#FF7A59] rounded-full"></div>
+                    </div>
+                </div>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="flex flex-col gap-2">
+                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                            <FaUtensils /> {t('summonPage.labels.foodItem')}
+                        </label>
+                        <select 
+                            name="foodItem" 
+                            onChange={handleChange} 
+                            required 
+                            className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F28C38] focus:border-transparent transition-all duration-300 bg-white"
+                        >
+                            <option value="">{t('summonPage.placeholders.selectItem')}</option>
                             {foodListings.filter(item => item.quantity > 0).map(item => (
                                 <option key={item._id} value={item._id}>{item.title} (Qty: {item.quantity})</option>
                             ))}
                         </select>
                     </div>
-                    <div className="form-group">
-                        <label><FaMapMarkerAlt /> Pickup Location</label>
-                        <input name="pickupLocation" onChange={handleChange} value={formData.pickupLocation} />
+                    <div className="flex flex-col gap-2">
+                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                            <FaMapMarkerAlt /> {t('summonPage.labels.pickup')}
+                        </label>
+                        <input 
+                            name="pickupLocation" 
+                            onChange={handleChange} 
+                            value={formData.pickupLocation} 
+                            className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F28C38] focus:border-transparent transition-all duration-300 bg-white"
+                        />
                     </div>
-                    <div className="form-group">
-                        <label><FaMapMarkerAlt /> Drop-off Location / NGO Address</label>
-                        <input name="dropOffLocation" onChange={handleChange} placeholder="e.g., Hope Foundation, Park Street" required />
+                    <div className="flex flex-col gap-2">
+                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                            <FaMapMarkerAlt /> {t('summonPage.labels.dropOff')}
+                        </label>
+                        <input 
+                            name="dropOffLocation" 
+                            onChange={handleChange} 
+                            placeholder={t('summonPage.placeholders.dropOff')} 
+                            required 
+                            className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F28C38] focus:border-transparent transition-all duration-300 bg-white"
+                        />
                     </div>
-                    <button type="submit" disabled={status === 'Finding a volunteer...'}>
-                        {status === 'Finding a volunteer...' ? <FaSpinner className="spinner" /> : 'Request Delivery'}
+                    <button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="w-full py-3 bg-[#F28C38] text-white rounded-xl font-semibold text-lg flex items-center justify-center gap-2 hover:bg-[#FF6F61] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isSubmitting ? <FaSpinner className="animate-spin" /> : t('summonPage.button.request')}
                     </button>
-                    {status && <p className="status-text">{status}</p>}
+                    {status && <p className="text-center text-sm font-medium text-gray-700">{status}</p>}
                 </form>
             </div>
-            <style jsx>{`
-                .form-container { max-width: 600px; margin: 40px auto; padding: 20px; }
-                .form-wrapper { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-                .form-wrapper h2 { text-align: center; margin-bottom: 10px; color: #2C5E4A; display: flex; align-items: center; justify-content: center; gap: 10px; }
-                .form-wrapper p { text-align: center; color: #555; margin-bottom: 30px; }
-                .form-wrapper form { display: flex; flex-direction: column; gap: 20px; }
-                .form-wrapper .form-group { display: flex; flex-direction: column; }
-                .form-wrapper label { font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-                .form-wrapper input, .form-wrapper select { padding: 15px; border-radius: 10px; border: 1px solid #ddd; font-size: 1rem; }
-                .form-wrapper button { padding: 15px; border-radius: 10px; font-weight: 600; cursor: pointer; background: #2C5E4A; color: white; border: none; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; }
-                .status-text { text-align: center; margin-top: 20px; font-weight: 500; }
-                .spinner { animation: spin 1s linear infinite; }
-                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-            `}</style>
         </div>
     );
 };

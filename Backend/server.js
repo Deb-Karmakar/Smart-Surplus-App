@@ -44,6 +44,7 @@ app.use('/api/deliveries', require('./routes/deliveries'));
 app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/redeem', require('./routes/redeem'));
+app.use('/api/leaderboard', require('./routes/leaderboard'));
 
 
 const PORT = process.env.PORT || 5000;

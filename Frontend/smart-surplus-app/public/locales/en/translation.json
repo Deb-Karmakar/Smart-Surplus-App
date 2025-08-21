@@ -281,5 +281,123 @@
     },
     "days": { "sun": "Sun", "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat" }
   }
-}
+},
+ "registerPage": {
+    "title": "Create an Account",
+    "subtitle": "Join ZeroBite and start making an impact today.",
+    "loginPrompt": "Already have an account?",
+    "loginLink": "Log in here",
+    "terms": "By signing up, you agree to our",
+    "termsLink": "Terms of Service",
+    "and": "and",
+    "privacyLink": "Privacy Policy"
+  },
+  "loginPage": {
+    "title": "Welcome Back!",
+    "subtitle": "Log in to manage or claim surplus food.",
+    "registerPrompt": "Don't have an account?",
+    "registerLink": "Register here",
+    "terms": "By logging in, you agree to our"
+  },
+  "volunteerPage": {
+    "modal": {
+      "title": "Update Status",
+      "label": "Update Status",
+      "cancel": "Cancel",
+      "updating": "Updating...",
+      "update": "Update Status",
+      "error": "Failed to update status. Please try again.",
+      "status": {
+        "pending": "Pending",
+        "onTheWay": "On the Way",
+        "pickedUp": "Picked Up",
+        "delivered": "Delivered"
+      }
+    },
+    "dashboard": {
+      "title": "Volunteer Dashboard",
+      "welcome": "Welcome back, {{name}}!",
+      "currentStatus": "Current Status",
+      "status": {
+        "available": "Available",
+        "busy": "Busy"
+      },
+      "stats": {
+        "active": "Active Tasks",
+        "transit": "In Transit",
+        "delivered": "Delivered"
+      },
+      "tasksTitle": "Active Tasks ({{count}})",
+      "pickup": "Pickup:",
+      "dropOff": "Drop-off:",
+      "updateStatus": "Update Status",
+      "empty": {
+        "title": "No Active Tasks",
+        "subtitle": "You'll be notified when new delivery tasks are assigned to you!"
+      }
+    },
+    "loading": {
+      "title": "Loading Dashboard",
+      "subtitle": "Preparing your volunteer experience..."
+    },
+    "consent": {
+      "title": "Become a",
+      "highlight": "Volunteer",
+      "subtitle": "Join our community of heroes helping redistribute surplus food to those in need. Make a difference while earning amazing rewards!",
+      "cards": {
+        "registerTitle": "Register as Volunteer",
+        "registerDesc": "Quick and easy registration process. Just fill out your details and become part of our amazing volunteer community dedicated to fighting food waste.",
+        "deliveriesTitle": "Complete Deliveries",
+        "deliveriesDesc": "Pick up surplus food from restaurants and deliver to those in need. Track your deliveries in real-time and make a direct impact in your community.",
+        "rewardsTitle": "Earn Cashbacks & Rewards",
+        "rewardsDesc": "Get rewarded for your good deeds! Earn cashbacks, unlock achievement badges, and enjoy exclusive perks as you help make the world a better place."
+      },
+      "cta": {
+        "title": "Ready to Make a Difference?",
+        "subtitle": "Join thousands of volunteers already making an impact!",
+        "later": "Maybe Later",
+        "join": "Join Our Mission!"
+      }
+    },
+    "form": {
+      "title": "Volunteer Registration",
+      "subtitle": "Fill out your details to get started",
+      "labels": {
+        "fullName": "Full Name",
+        "phone": "Phone Number",
+        "roll": "Roll Number",
+        "yearDept": "Year & Department"
+      },
+      "placeholders": {
+        "fullName": "Enter your full name",
+        "phone": "Enter your phone number",
+        "roll": "Enter your roll number",
+        "yearDept": "e.g., 3rd Year Computer Science"
+      },
+      "submit": "Complete Registration",
+      "success": "Registration successful! Welcome to our volunteer community!",
+      "error": "Registration failed. Please try again."
+    }
+  },
+  "summonPage": {
+    "title": "Summon a Delivery Volunteer",
+    "subtitle": "Find an available volunteer to deliver surplus food to a nearby NGO.",
+    "labels": {
+      "foodItem": "Select Food Item",
+      "pickup": "Pickup Location",
+      "dropOff": "Drop-off Location / NGO Address"
+    },
+    "placeholders": {
+      "selectItem": "Select from available listings...",
+      "dropOff": "e.g., Hope Foundation, Park Street"
+    },
+    "button": {
+      "request": "Request Delivery",
+      "requesting": "Finding a volunteer..."
+    },
+    "status": {
+      "finding": "Finding a volunteer...",
+      "fail": "Request failed. Please try again."
+    }
+  }
 }
