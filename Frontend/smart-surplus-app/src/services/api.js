@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://zerobite-backend.onrender.com',
+  baseURL: 'https://zerobite-backend.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
