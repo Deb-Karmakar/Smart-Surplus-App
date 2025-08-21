@@ -73,9 +73,9 @@ const App = () => {
           <Navbar />
           <PushSubscriptionHandler />
           
-          <div style={{ background: '#222', color: '#fff', padding: '5px', textAlign: 'center', fontSize: '14px' }}>
+          {/* <div style={{ background: '#222', color: '#fff', padding: '5px', textAlign: 'center', fontSize: '14px' }}>
             Backend Status: {backendStatus || 'Checking...'}
-          </div>
+          </div> */}
 
           <main>
             <Routes>
