@@ -58,7 +58,7 @@ const App = () => {
   const [backendStatus, setBackendStatus] = React.useState('');
 
   React.useEffect(() => {
-    axios.get('http://localhost:5000/api/test')
+    axios.get('https://zerobite-backend.onrender.com')
       .then(res => setBackendStatus(res.data.message))
       .catch(err => {
         console.error(err);
