@@ -57,14 +57,14 @@ const PushSubscriptionHandler = () => {
 const App = () => {
   const [backendStatus, setBackendStatus] = React.useState('');
 
-  React.useEffect(() => {
-    axios.get('https://zerobite-backend.onrender.com/api/test')
-      .then(res => setBackendStatus(res.data.message))
-      .catch(err => {
-        console.error(err);
-        setBackendStatus('❌ Cannot connect to backend');
-      });
-  }, []);
+  // React.useEffect(() => {
+  //   axios.get('https://zerobite-backend.onrender.com/api/test')
+  //     .then(res => setBackendStatus(res.data.message))
+  //     .catch(err => {
+  //       console.error(err);
+  //       setBackendStatus('❌ Cannot connect to backend');
+  //     });
+  // }, []);
 
   return (
     <AuthProvider>

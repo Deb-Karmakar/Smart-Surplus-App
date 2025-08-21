@@ -17,20 +17,20 @@ app.use(express.json());
 app.get('/', (req, res) => res.send('API is running...'));
 
 
-// app.get('/api/test', async (req, res) => {
-//   try {
-//     // This will check if Mongoose is connected
-//     const state = mongoose.connection.readyState; 
-//     // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
-//     if (state === 1) {
-//       res.json({ message: '✅ Connected to MongoDB Atlas' });
-//     } else {
-//       res.json({ message: '⚠️ Not connected to MongoDB Atlas', state });
-//     }
-//   } catch (err) {
-//     res.status(500).json({ message: '❌ Error checking database connection', error: err.message });
-//   }
-// });
+app.get('/api/test', async (req, res) => {
+  try {
+    // This will check if Mongoose is connected
+    const state = mongoose.connection.readyState; 
+    // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+    if (state === 1) {
+      res.json({ message: '✅ Connected to MongoDB Atlas' });
+    } else {
+      res.json({ message: '⚠️ Not connected to MongoDB Atlas', state });
+    }
+  } catch (err) {
+    res.status(500).json({ message: '❌ Error checking database connection', error: err.message });
+  }
+});
 
 // --- Use API Routes ---
 app.use('/api/auth', require('./routes/auth'));
