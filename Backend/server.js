@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const path = require('path');
 const connectDB = require('./config/db');
 const startScheduler = require('./utils/scheduler');
 
@@ -12,10 +13,6 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-// Root route
-app.get('/', (req, res) => res.send('API is running...'));
-
 
 app.get('/api/test', async (req, res) => {
   try {
@@ -32,7 +29,7 @@ app.get('/api/test', async (req, res) => {
   }
 });
 
-// --- Use API Routes ---
+// --- API Routes ---
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/food', require('./routes/food'));
 app.use('/api/notifications', require('./routes/notifications'));
@@ -46,8 +43,20 @@ app.use('/api/upload', require('./routes/upload'));
 app.use('/api/redeem', require('./routes/redeem'));
 app.use('/api/leaderboard', require('./routes/leaderboard'));
 
+// --- Serve Frontend in Production ---
+if (process.env.NODE_ENV === 'production') {
+  const frontendPath = path.join(__dirname, '../Frontend/dist');
+  app.use(express.static(frontendPath));
+
+  // Catch-all: return index.html for any route not handled
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+} else {
+  // Dev mode root route
+  app.get('/', (req, res) => res.send('API is running...'));
+}
 
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 startScheduler();

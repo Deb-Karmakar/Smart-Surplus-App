@@ -128,9 +128,9 @@ const HomePage = ({ userRole }) => {
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-3 gap-8 relative">
               {/* Step 1 */}
-              <div className="group relative">
+              <div className="group relative z-20">
                 <div className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 p-8 text-center group-hover:-translate-y-2">
-                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-30">
                     <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                       01
                     </div>
@@ -149,13 +149,10 @@ const HomePage = ({ userRole }) => {
                 </div>
               </div>
 
-              {/* Connector Line */}
-              <div className="hidden md:block absolute top-1/2 left-1/3 w-1/3 h-0.5 bg-gradient-to-r from-gray-300 to-gray-400 transform -translate-y-1/2 z-0"></div>
-
               {/* Step 2 */}
-              <div className="group relative">
+              <div className="group relative z-20">
                 <div className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 p-8 text-center group-hover:-translate-y-2">
-                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-30">
                     <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                       02
                     </div>
@@ -174,13 +171,10 @@ const HomePage = ({ userRole }) => {
                 </div>
               </div>
 
-              {/* Connector Line */}
-              <div className="hidden md:block absolute top-1/2 right-1/3 w-1/3 h-0.5 bg-gradient-to-r from-gray-300 to-gray-400 transform -translate-y-1/2 z-0"></div>
-
               {/* Step 3 */}
-              <div className="group relative">
+              <div className="group relative z-20">
                 <div className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 p-8 text-center group-hover:-translate-y-2">
-                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-30">
                     <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
                       03
                     </div>

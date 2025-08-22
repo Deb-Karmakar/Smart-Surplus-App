@@ -6,6 +6,16 @@ const mongoose = require('mongoose');
 // @route   POST /api/bookings
 // @access  Private (NGOs only)
 exports.createBooking = async (req, res) => {
+  // --- SECURITY CHECK ADDED ---
+  // Ensure the user has the 'ngo' role before proceeding.
+  if (req.user.role !== 'ngo') {
+    return res.status(403).json({ 
+      success: false, 
+      message: 'Access denied. Only NGOs are authorized to book food deliveries.' 
+    });
+  }
+  // ------------------------------
+
   const { foodListingId, quantity } = req.body;
   const ngoId = req.user.id;
 
@@ -14,9 +24,6 @@ exports.createBooking = async (req, res) => {
   }
 
   try {
-    // --- FIX: The transaction logic is removed as quantity is no longer deducted here ---
-    // We only need to create the booking record.
-    
     const food = await FoodListing.findById(foodListingId);
     if (!food) {
         return res.status(404).json({ success: false, message: 'Food listing not found.' });
@@ -56,6 +63,12 @@ exports.createBooking = async (req, res) => {
 // @access  Private (NGOs only)
 exports.getMyBookings = async (req, res) => {
   try {
+    // --- SECURITY NOTE ---
+    // This route is already implicitly secure for NGOs because the logic
+    // fetches bookings based on the logged-in user's ID (`req.user.id`).
+    // An explicit role check could be added for extra security, but is not
+    // strictly necessary here.
+
     const bookings = await Booking.find({ ngo: req.user.id })
       .populate({
         path: 'foodListing',
@@ -68,6 +81,7 @@ exports.getMyBookings = async (req, res) => {
       })
       .sort({ bookedAt: -1 });
 
+    // Filter out bookings where the associated food listing might have been deleted
     const validBookings = bookings.filter(booking => booking.foodListing !== null);
 
     res.status(200).json({ success: true, data: validBookings });

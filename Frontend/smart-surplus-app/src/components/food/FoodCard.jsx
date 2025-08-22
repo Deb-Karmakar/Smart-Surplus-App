@@ -230,37 +230,40 @@ const FoodCard = ({ foodItem }) => {
                 </div>
               </div>
 
-              <div className="delivery-section">
-                <div className="delivery-toggle">
-                  <label className="toggle-label">
-                    <input
-                      type="checkbox"
-                      checked={deliveryRequested}
-                      onChange={(e) => setDeliveryRequested(e.target.checked)}
-                      className="modern-checkbox"
-                    />
-                    <span className="checkmark"></span>
-                    <MdDeliveryDining className="delivery-icon" />
-                    <span>Request delivery service</span>
-                  </label>
-                </div>
 
-                {deliveryRequested && (
-                  <div className="delivery-address animate-slide-in">
-                    <label className="input-label">
-                      <FaMapMarkerAlt />
-                      Delivery Address
-                    </label>
-                    <input
-                      type="text"
-                      value={deliveryAddress}
-                      onChange={(e) => setDeliveryAddress(e.target.value)}
-                      placeholder="Enter your complete delivery address"
-                      className="modern-input"
-                    />
-                  </div>
-                )}
-              </div>
+{user && user.role === 'ngo' && (
+  <div className="delivery-section">
+    <div className="delivery-toggle">
+      <label className="toggle-label">
+        <input
+          type="checkbox"
+          checked={deliveryRequested}
+          onChange={(e) => setDeliveryRequested(e.target.checked)}
+          className="modern-checkbox"
+        />
+        <span className="checkmark"></span>
+        <MdDeliveryDining className="delivery-icon" />
+        <span>Request delivery service</span>
+      </label>
+    </div>
+
+    {deliveryRequested && (
+      <div className="delivery-address animate-slide-in">
+        <label className="input-label">
+          <FaMapMarkerAlt />
+          Delivery Address
+        </label>
+        <input
+          type="text"
+          value={deliveryAddress}
+          onChange={(e) => setDeliveryAddress(e.target.value)}
+          placeholder="Enter your complete delivery address"
+          className="modern-input"
+        />
+      </div>
+    )}
+  </div>
+)}
 
               {error && (
                 <div className="error-message animate-shake">
