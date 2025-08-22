@@ -1,5 +1,6 @@
 const Volunteer = require('../models/Volunteer');
 const Delivery = require('../models/Delivery');
+const User = require('../models/User'); // Added to check the user's role
 
 // @desc    Register the current user as a volunteer
 exports.registerVolunteer = async (req, res) => {
@@ -17,7 +18,28 @@ exports.registerVolunteer = async (req, res) => {
   }
 };
 
-// --- NEW: Get the volunteer profile for the logged-in user ---
+// --- NEW FUNCTION ADDED ---
+// @desc    Get all registered volunteers (for Canteen Staff)
+// @access  Private (canteen-organizer only)
+exports.getAllVolunteers = async (req, res) => {
+    try {
+        // First, check the role of the user making the request
+        const requestingUser = await User.findById(req.user.id).select('role');
+        if (!requestingUser || requestingUser.role !== 'canteen-organizer') {
+            return res.status(403).json({ msg: 'Access denied. Not authorized.' });
+        }
+
+        // If authorized, fetch all volunteers, sorting 'Available' ones first
+        const volunteers = await Volunteer.find().sort({ status: 1 });
+        res.json(volunteers);
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+// @desc    Get the volunteer profile for the logged-in user
 exports.getMyVolunteerProfile = async (req, res) => {
     try {
         const volunteer = await Volunteer.findOne({ user: req.user.id });
@@ -31,7 +53,7 @@ exports.getMyVolunteerProfile = async (req, res) => {
     }
 };
 
-// --- NEW: Update a volunteer's availability status ---
+// @desc    Update a volunteer's availability status
 exports.updateVolunteerStatus = async (req, res) => {
     const { status } = req.body;
     if (!['Available', 'Busy'].includes(status)) {
@@ -53,7 +75,7 @@ exports.updateVolunteerStatus = async (req, res) => {
     }
 };
 
-// --- NEW: Get assigned (but not delivered) tasks for a volunteer ---
+// @desc    Get assigned (but not delivered) tasks for a volunteer
 exports.getMyDeliveryTasks = async (req, res) => {
     try {
         const volunteer = await Volunteer.findOne({ user: req.user.id });

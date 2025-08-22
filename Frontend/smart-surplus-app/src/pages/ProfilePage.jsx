@@ -21,7 +21,7 @@ const ProfilePage = () => {
     );
   }
   
-  // --- FIX: Provide default values for gamification fields ---
+  // Provide default values for gamification fields
   const userBadges = user.badges || [];
   const userTitle = user.title || 'New Member';
   const userLevel = user.level || 1;
@@ -90,9 +90,38 @@ const ProfilePage = () => {
         .badges-section { background: #fff; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         .section-title { font-size: 1.5rem; font-weight: 600; margin: 0 0 20px 0; }
         .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; }
-        .badge { text-align: center; padding: 20px; border-radius: 15px; }
-        .badge.earned { background-color: #F1F8E9; }
-        .badge.unearned { background-color: #F5F5F5; opacity: 0.6; }
+        
+        .badge { 
+          text-align: center; 
+          padding: 20px; 
+          border-radius: 15px;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .badge:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        /* --- FIX: Improved Badge Styles --- */
+        .badge.earned { 
+          background-color: #E8F5E9; /* Softer green background */
+          border: 1px solid #A5D6A7;
+        }
+        .badge.earned .badge-title {
+          color: #2E7D32; /* Darker green text for contrast */
+          font-weight: 600;
+        }
+
+        .badge.unearned { 
+          background-color: #F5F5F5; /* Light grey background */
+          border: 1px solid #EEEEEE;
+        }
+        /* Only dim the content, not the whole container */
+        .badge.unearned .badge-icon,
+        .badge.unearned .badge-title {
+          opacity: 0.5;
+        }
+        
         .badge-icon { font-size: 2.5rem; margin-bottom: 10px; }
         .badge-title { font-weight: 500; margin: 0; color: #333; }
       `}</style>

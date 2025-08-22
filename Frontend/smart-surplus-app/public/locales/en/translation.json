@@ -398,6 +398,58 @@
     "status": {
       "finding": "Finding a volunteer...",
       "fail": "Request failed. Please try again."
+    },
+    "viewVolunteersButton": "View Registered Volunteers",
+    "volunteerList": {
+      "title": "Registered Volunteers",
+      "name": "Name",
+      "status": "Status",
+      "contact": "Contact",
+      "department": "Dept & Year",
+      "vehicle": "Vehicle",
+      "none": "No volunteers have registered yet."
+    }
+  },
+  "reachOutPage": {
+    "title": "Connect with Local NGOs",
+    "subtitle": "Find and reach out to nearby organizations to donate your surplus food",
+    "location": {
+      "getting": "Getting your location...",
+      "converting": "Converting to address...",
+      "accurate": "{{percent}}% accurate",
+      "error": "Could not get your location."
+    },
+    "controls": {
+      "radius": "Search radius:",
+      "anyDistance": "Any distance",
+      "refresh": "Refresh Location",
+      "enterAddress": "Enter Address"
+    },
+    "manualInput": {
+      "label": "Enter Your Address",
+      "placeholder": "e.g. Anandapur, West Bengal 700107",
+      "button": "Use This Address",
+      "buttonLoading": "Finding Location...",
+      "hint": "💡 Enter your complete address including area, city, and pin code for better accuracy"
+    },
+    "status": {
+      "loadingTitle": "Finding nearby NGOs",
+      "loadingSubtitle": "Searching for organizations in your area...",
+      "errorTitle": "Unable to find NGOs",
+      "tryAgain": "Try Again",
+      "manual": "Enter Address Manually",
+      "success": "Found {{count}} NGO near you",
+      "success_plural": "Found {{count}} NGOs near you",
+      "emptyTitle": "No NGOs found",
+      "emptySubtitle": "No organizations found within {{distance}}. Try expanding your search radius or check your location.",
+      "emptySubtitleAny": "No organizations found in your search area. Try checking your location.",
+      "expand": "Expand Search Area"
+    },
+    "ngoCard": {
+      "distanceAway": "{{distance}} away",
+      "call": "Call",
+      "email": "Email",
+      "map": "Map"
     }
   }
 }

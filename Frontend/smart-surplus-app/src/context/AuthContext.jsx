@@ -1,7 +1,40 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useMemo } from 'react';
 import api, { setAuthToken } from '../services/api';
 
 const AuthContext = createContext();
+
+// --- FIX: Define role-specific badge lists ---
+
+// Badges for Students
+const studentBadges = [
+    { id: 'first_meal_saved', icon: '🍔', title: 'First Meal Saved' },
+    { id: 'five_meals_saved', icon: '🙌', title: 'High-Five Saver' },
+    { id: 'eco_conscious', icon: '🌿', title: 'Eco-Conscious' },
+    { id: 'weekly_champion', icon: '🏆', title: 'Weekly Champion' },
+    { id: 'perfect_streak', icon: '🗓️', title: 'Perfect Streak' },
+    { id: 'community_sharer', icon: '🤝', title: 'Community Sharer' },
+];
+
+// Badges for Canteen Organizers
+const organizerBadges = [
+    { id: 'first_listing', icon: '✅', title: 'First Listing' },
+    { id: 'zero_waste_day', icon: '🌟', title: 'Zero-Waste Day' },
+    { id: 'consistent_contributor', icon: '🔄', title: 'Consistent Contributor' },
+    { id: 'community_favorite', icon: '💖', title: 'Community Favorite' },
+    { id: 'surplus_superstar', icon: '🦸', title: 'Surplus Superstar' },
+    { id: 'efficiency_expert', icon: '⚙️', title: 'Efficiency Expert' },
+];
+
+// Badges for NGOs
+const ngoBadges = [
+    { id: 'first_pickup', icon: '🚚', title: 'First Pickup' },
+    { id: 'community_connector', icon: '🔗', title: 'Community Connector' },
+    { id: 'impact_maker', icon: '🌍', title: 'Impact Maker' },
+    { id: 'logistics_leader', icon: '🗺️', title: 'Logistics Leader' },
+    { id: 'hunger_hero', icon: '❤️', title: 'Hunger Hero' },
+    { id: 'outreach_champion', icon: '📣', title: 'Outreach Champion' },
+];
+
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -10,29 +43,16 @@ export const AuthProvider = ({ children }) => {
 
   const loadUser = async () => {
     const token = localStorage.getItem('token');
-    console.log('loadUser called, token exists:', !!token); // Debug log
-    
     if (token) {
       setAuthToken(token);
       try {
-        console.log('Making API call to /auth'); // Debug log
         const res = await api.get('/auth'); 
-        console.log('User data received:', res.data); // Debug log
-        
-        // Ensure user has an ID field
         if (res.data && res.data._id) {
-          const userData = {
-            ...res.data,
-            id: res.data._id // Ensure id field exists
-          };
-          console.log('Setting user data:', userData); // Debug log
+          const userData = { ...res.data, id: res.data._id };
           setUser(userData);
           setIsAuthenticated(true);
         } else {
-          console.error('User data missing _id field:', res.data);
           localStorage.removeItem('token');
-          setUser(null);
-          setIsAuthenticated(false);
         }
       } catch (err) {
         console.error("Token is invalid or API error:", err.response?.data || err.message);
@@ -40,8 +60,6 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setIsAuthenticated(false);
       }
-    } else {
-      console.log('No token found in localStorage');
     }
     setLoading(false);
   };
@@ -50,13 +68,25 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, []);
 
+  // --- FIX: Dynamically select badges based on user role ---
+  const roleSpecificBadges = useMemo(() => {
+    switch (user?.role) {
+      case 'student':
+        return studentBadges;
+      case 'canteen-organizer':
+        return organizerBadges;
+      case 'ngo':
+        return ngoBadges;
+      default:
+        return []; // Return an empty array if role is not set
+    }
+  }, [user]); // Recalculate only when the user object changes
+
   const login = async (email, password) => {
     try {
-      console.log('Attempting login for:', email); // Debug log
       const res = await api.post('/auth/login', { email, password });
-      console.log('Login successful, token received'); // Debug log
       setAuthToken(res.data.token);
-      await loadUser(); // This will set the user data
+      await loadUser();
       return true;
     } catch (err) {
       console.error('Login failed:', err.response?.data?.msg || err.message);
@@ -66,11 +96,9 @@ export const AuthProvider = ({ children }) => {
   
   const register = async (formData) => {
     try {
-      console.log('Attempting registration for:', formData.email); // Debug log
       const res = await api.post('/auth/register', formData);
-      console.log('Registration successful, token received'); // Debug log
       setAuthToken(res.data.token);
-      await loadUser(); // This will set the user data
+      await loadUser();
       return true;
     } catch (err) {
       console.error('Registration failed:', err.response?.data?.msg || err.message);
@@ -79,7 +107,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    console.log('Logging out user'); // Debug log
     setAuthToken(null);
     setUser(null);
     setIsAuthenticated(false);
@@ -100,6 +127,7 @@ export const AuthProvider = ({ children }) => {
     });
   };
   
+  // --- FIX: Add the dynamic `roleSpecificBadges` to the context value ---
   const value = {
     user,
     isAuthenticated,
@@ -109,16 +137,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     loadUser,
     incrementWeeklyChallenge,
+    allBadges: roleSpecificBadges, // <-- EXPOSE THE ROLE-SPECIFIC BADGES
   };
-
-  // Debug log for every render
-  console.log('AuthContext state:', { 
-    userExists: !!user, 
-    userId: user?.id || user?._id, 
-    userRole: user?.role, 
-    isAuthenticated, 
-    loading 
-  });
 
   return (
     <AuthContext.Provider value={value}>

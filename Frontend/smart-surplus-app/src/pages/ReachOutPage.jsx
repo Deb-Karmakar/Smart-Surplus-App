@@ -1,395 +1,272 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Phone, Mail, Navigation, Search, AlertCircle, CheckCircle, Loader, RefreshCw, Settings } from 'lucide-react';
 import api from '../services/api';
 
-// Calculate accuracy percentage from meters
+// Helper function to calculate accuracy percentage
 const calculateAccuracyPercentage = (accuracy) => {
-  if (!accuracy || accuracy === 0) return 100;
-  if (accuracy <= 5) return 95;
-  if (accuracy <= 10) return 85;
-  if (accuracy <= 20) return 75;
-  if (accuracy <= 50) return 60;
-  if (accuracy <= 100) return 45;
-  return 30;
+    if (!accuracy || accuracy === 0) return 100;
+    if (accuracy <= 5) return 95;
+    if (accuracy <= 10) return 85;
+    if (accuracy <= 20) return 75;
+    if (accuracy <= 50) return 60;
+    if (accuracy <= 100) return 45;
+    return 30;
 };
 
-// Reverse Geocoding
+// Helper function for Reverse Geocoding
 const reverseGeocode = async (lat, lng) => {
-  try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1`,
-      { headers: { 'User-Agent': 'FoodDonationApp/1.0' } }
-    );
-    if (!response.ok) throw new Error('Geocoding service unavailable');
-    const data = await response.json();
-    return data?.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-  } catch {
-    return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-  }
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1`, { headers: { 'User-Agent': 'ZeroBiteApp/1.0' } });
+        if (!response.ok) throw new Error('Geocoding service unavailable');
+        const data = await response.json();
+        return data?.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    } catch {
+        return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
 };
 
-// Forward Geocoding
+// Helper function for Forward Geocoding
 const geocodeAddress = async (address) => {
-  const fetchLocation = async (query) => {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&countrycodes=in&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`,
-      { headers: { 'User-Agent': 'FoodDonationApp/1.0' } }
-    );
-    if (!response.ok) throw new Error('Geocoding service unavailable');
-    return await response.json();
-  };
-
-  let data = await fetchLocation(address);
-
-  if (!data.length) {
-    const simplified = address
-      .replace(/\d{6}|\d{5}/g, '') // remove postal codes
-      .split(',')
-      .slice(-3)
-      .join(',');
-
-    console.log(`Retrying with simplified address (India only): ${simplified}`);
-    data = await fetchLocation(simplified);
-  }
-
-  if (data?.length) {
-    return {
-      latitude: parseFloat(data[0].lat),
-      longitude: parseFloat(data[0].lon),
-      formatted_address: data[0].display_name,
+    const fetchLocation = async (query) => {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=in&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`, { headers: { 'User-Agent': 'ZeroBiteApp/1.0' } });
+        if (!response.ok) throw new Error('Geocoding service unavailable');
+        return await response.json();
     };
-  }
-
-  throw new Error('Address not found');
+    let data = await fetchLocation(address);
+    if (!data.length) {
+        const simplified = address.replace(/\d{6}|\d{5}/g, '').split(',').slice(-3).join(',');
+        data = await fetchLocation(simplified);
+    }
+    if (data?.length) {
+        return { latitude: parseFloat(data[0].lat), longitude: parseFloat(data[0].lon), formatted_address: data[0].display_name };
+    }
+    throw new Error('Address not found');
 };
 
-
-
-// NGO Card
-const NGOCard = ({ ngo }) => (
-  <div className="ngo-card">
-    <div className="ngo-header">
-      <div className="ngo-icon">
-        <div className="icon-circle">
-          <span className="hands-icon">🤝</span>
+// NGO Card Component
+const NGOCard = ({ ngo }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="ngo-card">
+            <div className="ngo-header">
+                <div className="ngo-icon"><div className="icon-circle"><span className="hands-icon">🤝</span></div></div>
+                <div className="ngo-info">
+                    <h3 className="ngo-name">{ngo.name}</h3>
+                    <p className="ngo-address"><MapPin size={14} className="address-icon" />{ngo.address}</p>
+                    {ngo.description && <p className="ngo-description">{ngo.description}</p>}
+                    {ngo.distance && <p className="ngo-distance">📍 {t('reachOutPage.ngoCard.distanceAway', { distance: ngo.distance })}</p>}
+                </div>
+            </div>
+            <div className="ngo-actions">
+                {ngo.phone && (<button onClick={() => window.open(`tel:${ngo.phone}`, '_self')} className="action-btn call-btn"><Phone size={16} /><span>{t('reachOutPage.ngoCard.call')}</span></button>)}
+                {ngo.email && (<button onClick={() => window.open(`mailto:${ngo.email}`, '_self')} className="action-btn email-btn"><Mail size={16} /><span>{t('reachOutPage.ngoCard.email')}</span></button>)}
+                <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ngo.name + ', ' + ngo.address)}`, '_blank')} className="action-btn map-btn"><MapPin size={16} /><span>{t('reachOutPage.ngoCard.map')}</span></button>
+            </div>
         </div>
-      </div>
-      <div className="ngo-info">
-        <h3 className="ngo-name">{ngo.name}</h3>
-        <p className="ngo-address"><MapPin size={14} className="address-icon" />{ngo.address}</p>
-        {ngo.description && <p className="ngo-description">{ngo.description}</p>}
-        {ngo.distance && <p className="ngo-distance">📍 {ngo.distance} away</p>}
-      </div>
-    </div>
-    <div className="ngo-actions">
-      {ngo.phone && (
-        <button onClick={() => window.open(`tel:${ngo.phone}`, '_self')} className="action-btn call-btn">
-          <Phone size={16} /><span>Call</span>
-        </button>
-      )}
-      {ngo.email && (
-        <button onClick={() => window.open(`mailto:${ngo.email}`, '_self')} className="action-btn email-btn">
-          <Mail size={16} /><span>Email</span>
-        </button>
-      )}
-      <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ngo.name)}`, '_blank')} className="action-btn map-btn">
-        <MapPin size={16} /><span>Map</span>
-      </button>
-    </div>
-  </div>
-);
+    );
+};
 
 const ReachOutPage = () => {
-  const [ngos, setNgos] = useState([]);
-  const [status, setStatus] = useState('idle');
-  const [error, setError] = useState('');
-  const [location, setLocation] = useState(null);
-  const [locationAddress, setLocationAddress] = useState('');
-  const [radius, setRadius] = useState(10000);
-  const [manualAddress, setManualAddress] = useState('');
-  const [showManualInput, setShowManualInput] = useState(false);
-  const [isGeocoding, setIsGeocoding] = useState(false);
-  const [manualMode, setManualMode] = useState(false);
+    const { t } = useTranslation();
+    const [ngos, setNgos] = useState([]);
+    const [status, setStatus] = useState('idle');
+    const [error, setError] = useState('');
+    const [location, setLocation] = useState(null);
+    const [locationAddress, setLocationAddress] = useState('');
+    const [radius, setRadius] = useState(10000);
+    const [manualAddress, setManualAddress] = useState('');
+    const [showManualInput, setShowManualInput] = useState(false);
+    const [isGeocoding, setIsGeocoding] = useState(false);
+    const [manualMode, setManualMode] = useState(false);
 
-  const findNearbyNGOs = useCallback(async () => {
-    if (!location) return;
-    setStatus('loading');
-    setError('');
-    try {
-      const { latitude, longitude } = location.coords;
-      const res = await api.get(`/ngo/nearby?lat=${latitude}&lng=${longitude}&radius=${radius}`);
-      setNgos(res.data);
-      setStatus('success');
-    } catch {
-      setError('Could not fetch nearby NGOs. Please try again later.');
-      setStatus('error');
-    }
-  }, [location, radius]);
+    const findNearbyNGOs = useCallback(async () => {
+        if (!location) return;
+        setStatus('loading');
+        setError('');
+        try {
+            const { latitude, longitude } = location.coords;
+            const res = await api.get(`/ngo/nearby?lat=${latitude}&lng=${longitude}&radius=${radius}`);
+            setNgos(res.data);
+            setStatus('success');
+        } catch {
+            setError(t('reachOutPage.location.errorFetch'));
+            setStatus('error');
+        }
+    }, [location, radius, t]);
 
-  const requestLocation = async () => {
-    setManualMode(false);
-    setStatus('loading');
-    setError('');
-    setLocationAddress('Getting your location...');
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        setLocation(pos);
-        setLocationAddress(await reverseGeocode(pos.coords.latitude, pos.coords.longitude));
-        setStatus('idle');
-      },
-      () => {
-        setError('Could not get your location.');
-        setStatus('error');
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-  };
+    const requestLocation = useCallback(async () => {
+        setManualMode(false);
+        setStatus('loading');
+        setError('');
+        setLocationAddress(t('reachOutPage.location.getting'));
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                setLocation(pos);
+                setLocationAddress(await reverseGeocode(pos.coords.latitude, pos.coords.longitude));
+                setStatus('idle');
+            },
+            () => {
+                setError(t('reachOutPage.location.error'));
+                setStatus('error');
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+    }, [t]);
 
-  const handleUseManualAddress = async () => {
-    if (!manualAddress.trim()) {
-      setError('Please enter a valid address.');
-      return;
-    }
-    setIsGeocoding(true);
-    setError('');
-    try {
-      const result = await geocodeAddress(manualAddress.trim());
-      const manualPos = {
-        coords: { latitude: result.latitude, longitude: result.longitude, accuracy: 0 },
-        timestamp: Date.now(),
-      };
-      setLocation(manualPos);
-      setLocationAddress(result.formatted_address);
-      setShowManualInput(false);
-      setManualAddress('');
-      setManualMode(true); // Mark that we're in manual mode
-      setTimeout(findNearbyNGOs, 100);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsGeocoding(false);
-    }
-  };
+    const handleUseManualAddress = async () => {
+        if (!manualAddress.trim()) {
+            setError(t('reachOutPage.manualInput.error'));
+            return;
+        }
+        setIsGeocoding(true);
+        setError('');
+        try {
+            const result = await geocodeAddress(manualAddress.trim());
+            const manualPos = { coords: { latitude: result.latitude, longitude: result.longitude, accuracy: 0 }, timestamp: Date.now() };
+            setLocation(manualPos);
+            setLocationAddress(result.formatted_address);
+            setShowManualInput(false);
+            setManualAddress('');
+            setManualMode(true);
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setIsGeocoding(false);
+        }
+    };
 
-  useEffect(() => {
-    if (!manualMode && !location) {
-      requestLocation();
-    }
-  }, [manualMode]);
+    useEffect(() => {
+        if (!manualMode && !location) {
+            requestLocation();
+        }
+    }, [manualMode, location, requestLocation]);
 
-  useEffect(() => {
-    if (location) findNearbyNGOs();
-  }, [location, findNearbyNGOs]);
+    useEffect(() => {
+        if (location) {
+            findNearbyNGOs();
+        }
+    }, [location, findNearbyNGOs]);
 
-  const accuracyPercentage = location ? calculateAccuracyPercentage(location.coords.accuracy) : 0;
-
-  const renderLocationStatus = () => {
-    if (!location && !locationAddress && status !== 'loading') return null;
+    const accuracyPercentage = location ? calculateAccuracyPercentage(location.coords.accuracy) : 0;
     
+    // --- RENDER FUNCTIONS ---
+    const renderLocationStatus = () => {
+        const isGettingLocation = status === 'loading' || locationAddress === t('reachOutPage.location.getting') || locationAddress === t('reachOutPage.location.converting');
+
+        if (!location && !locationAddress && status !== 'loading') return null;
+        
+        return (
+            <div className="location-status">
+                <div className="location-info">
+                    {location && locationAddress && !isGettingLocation ? (
+                        <>
+                            <CheckCircle size={16} className="status-icon success" />
+                            <div className="location-details">
+                                <span className="location-text">📍 {locationAddress}</span>
+                                <div className="accuracy-info">
+                                    <span className="accuracy-badge">{t('reachOutPage.location.accurate', { percent: accuracyPercentage })}</span>
+                                    {location.coords.accuracy > 0 && <span className="accuracy-meters">(±{Math.round(location.coords.accuracy)}m)</span>}
+                                </div>
+                            </div>
+                        </>
+                    ) : (isGettingLocation) ? (
+                        <>
+                            <Loader size={16} className="status-icon loading" />
+                            <span className="location-text">{locationAddress || t('reachOutPage.location.getting')}</span>
+                        </>
+                    ) : null}
+                </div>
+            </div>
+        );
+    };
+
+    const renderContent = () => {
+        if (status === 'loading' && ngos.length === 0) {
+            return (
+                <div className="status-container"><div className="status-content loading">
+                    <Loader size={48} className="status-loader" />
+                    <h3>{t('reachOutPage.status.loadingTitle')}</h3>
+                    <p>{t('reachOutPage.status.loadingSubtitle')}</p>
+                </div></div>
+            );
+        }
+        if (status === 'error') {
+            return (
+                <div className="status-container"><div className="status-content error">
+                    <AlertCircle size={48} className="status-icon" />
+                    <h3>{t('reachOutPage.status.errorTitle')}</h3>
+                    <p>{error}</p>
+                    <div className="error-actions">
+                        <button onClick={requestLocation} className="retry-btn"><RefreshCw size={16} />{t('reachOutPage.status.tryAgain')}</button>
+                        <button onClick={() => setShowManualInput(!showManualInput)} className="manual-btn"><Settings size={16} />{t('reachOutPage.status.manual')}</button>
+                    </div>
+                </div></div>
+            );
+        }
+        if (status === 'success') {
+            return ngos.length ? (
+                <div className="results-container">
+                    <div className="results-header">
+                        <Search size={20} />
+                        <span>{t(ngos.length > 1 ? 'reachOutPage.status.success_plural' : 'reachOutPage.status.success', { count: ngos.length })}</span>
+                    </div>
+                    <div className="ngo-grid">{ngos.map(ngo => <NGOCard key={ngo._id || ngo.id} ngo={ngo} />)}</div>
+                </div>
+            ) : (
+                <div className="status-container"><div className="status-content empty">
+                    <Search size={48} className="status-icon" />
+                    <h3>{t('reachOutPage.status.emptyTitle')}</h3>
+                    <p>{radius === 'any' ? t('reachOutPage.status.emptySubtitleAny') : t('reachOutPage.status.emptySubtitle', { distance: `${radius/1000}km` })}</p>
+                    <button onClick={() => setRadius(radius < 20000 ? radius * 2 : 'any')} className="expand-btn">{t('reachOutPage.status.expand')}</button>
+                </div></div>
+            );
+        }
+        return null;
+    };
+
     return (
-      <div className="location-status">
-        <div className="location-info">
-          {location && locationAddress && locationAddress !== 'Getting your location...' && locationAddress !== 'Converting to address...' ? (
-            <>
-              <CheckCircle size={16} className="status-icon success" />
-              <div className="location-details">
-                <span className="location-text">
-                  📍 {locationAddress}
-                </span>
-                <div className="accuracy-info">
-                  <span className="accuracy-badge">
-                    {accuracyPercentage}% accurate
-                  </span>
-                  {location.coords.accuracy && (
-                    <span className="accuracy-meters">
-                      (±{location.coords.accuracy}m)
-                    </span>
-                  )}
+        <>
+            <div className="reach-out-container">
+                <div className="page-header">
+                    <div className="header-content">
+                        <h1 className="page-title">{t('reachOutPage.title')}</h1>
+                        <p className="page-subtitle">{t('reachOutPage.subtitle')}</p>
+                    </div>
+                    {/* RESTORED THIS FUNCTION CALL */}
+                    {renderLocationStatus()}
                 </div>
-              </div>
-            </>
-          ) : status === 'loading' || locationAddress === 'Getting your location...' || locationAddress === 'Converting to address...' ? (
-            <>
-              <Loader size={16} className="status-icon loading" />
-              <span className="location-text">
-                {locationAddress || 'Getting your location...'}
-              </span>
-            </>
-          ) : null}
-        </div>
-      </div>
-    );
-  };
-
-  const renderContent = () => {
-    if (status === 'loading' && ngos.length === 0) {
-      return (
-        <div className="status-container">
-          <div className="status-content loading">
-            <Loader size={48} className="status-loader" />
-            <h3>Finding nearby NGOs</h3>
-            <p>Searching for organizations in your area...</p>
-          </div>
-        </div>
-      );
-    }
-    
-    if (status === 'error') {
-      return (
-        <div className="status-container">
-          <div className="status-content error">
-            <AlertCircle size={48} className="status-icon" />
-            <h3>Unable to find NGOs</h3>
-            <p>{error}</p>
-            <div className="error-actions">
-              <button onClick={requestLocation} className="retry-btn">
-                <RefreshCw size={16} />
-                Try Again
-              </button>
-              <button 
-                onClick={() => setShowManualInput(!showManualInput)} 
-                className="manual-btn"
-              >
-                <Settings size={16} />
-                Enter Address Manually
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    
-    if (status === 'success') {
-      return ngos.length ? (
-        <div className="results-container">
-          <div className="results-header">
-            <Search size={20} />
-            <span>Found {ngos.length} NGO{ngos.length !== 1 ? 's' : ''} near you</span>
-          </div>
-          <div className="ngo-grid">
-            {ngos.map(ngo => <NGOCard key={ngo.id} ngo={ngo} />)}
-          </div>
-        </div>
-      ) : (
-        <div className="status-container">
-          <div className="status-content empty">
-            <Search size={48} className="status-icon" />
-            <h3>No NGOs found</h3>
-            <p>No organizations found within {radius === 'any' ? 'your search area' : `${radius/1000}km`}. Try expanding your search radius or check your location.</p>
-            <button onClick={() => setRadius(radius < 20000 ? radius * 2 : 'any')} className="expand-btn">
-              Expand Search Area
-            </button>
-          </div>
-        </div>
-      );
-    }
-    
-    return null;
-  };
-
-  return (
-    <>
-      <div className="reach-out-container">
-        <div className="page-header">
-          <div className="header-content">
-            <h1 className="page-title">Connect with Local NGOs</h1>
-            <p className="page-subtitle">
-              Find and reach out to nearby organizations to donate your surplus food
-            </p>
-          </div>
-          {renderLocationStatus()}
-        </div>
-
-        <div className="controls-section">
-          <div className="radius-filter">
-            <span className="filter-label">Search radius:</span>
-            <div className="radius-buttons">
-              <button 
-                onClick={() => setRadius(5000)} 
-                className={`radius-btn ${radius === 5000 ? 'active' : ''}`}
-              >
-                5 km
-              </button>
-              <button 
-                onClick={() => setRadius(10000)} 
-                className={`radius-btn ${radius === 10000 ? 'active' : ''}`}
-              >
-                10 km
-              </button>
-              <button 
-                onClick={() => setRadius(20000)} 
-                className={`radius-btn ${radius === 20000 ? 'active' : ''}`}
-              >
-                20 km
-              </button>
-              <button 
-                onClick={() => setRadius('any')} 
-                className={`radius-btn ${radius === 'any' ? 'active' : ''}`}
-              >
-                Any distance
-              </button>
-            </div>
-          </div>
-
-          <div className="action-controls">
-            <button onClick={requestLocation} className="control-btn primary">
-              <Navigation size={16} />
-              Refresh Location
-            </button>
-            <button 
-              onClick={() => setShowManualInput(!showManualInput)} 
-              className="control-btn secondary"
-            >
-              <Settings size={16} />
-              Enter Address
-            </button>
-          </div>
-
-          {showManualInput && (
-            <div className="manual-input-section">
-              <div className="manual-inputs">
-                <div className="input-group">
-                  <label>Enter Your Address</label>
-                  <input 
-                    type="text"
-                    placeholder="e.g. Anandapur, West Bengal 700107" 
-                    value={manualAddress} 
-                    onChange={e => setManualAddress(e.target.value)}
-                    className="address-input"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleUseManualAddress();
-                      }
-                    }}
-                  />
+                <div className="controls-section">
+                    <div className="radius-filter">
+                        <span className="filter-label">{t('reachOutPage.controls.radius')}</span>
+                        <div className="radius-buttons">
+                            <button onClick={() => setRadius(5000)} className={`radius-btn ${radius === 5000 ? 'active' : ''}`}>5 km</button>
+                            <button onClick={() => setRadius(10000)} className={`radius-btn ${radius === 10000 ? 'active' : ''}`}>10 km</button>
+                            <button onClick={() => setRadius(20000)} className={`radius-btn ${radius === 20000 ? 'active' : ''}`}>20 km</button>
+                            <button onClick={() => setRadius('any')} className={`radius-btn ${radius === 'any' ? 'active' : ''}`}>{t('reachOutPage.controls.anyDistance')}</button>
+                        </div>
+                    </div>
+                    <div className="action-controls">
+                        <button onClick={requestLocation} className="control-btn primary"><Navigation size={16} />{t('reachOutPage.controls.refresh')}</button>
+                        <button onClick={() => setShowManualInput(!showManualInput)} className="control-btn secondary"><Settings size={16} />{t('reachOutPage.controls.enterAddress')}</button>
+                    </div>
+                    {showManualInput && (
+                        <div className="manual-input-section">
+                            <div className="manual-inputs">
+                                <div className="input-group">
+                                    <label>{t('reachOutPage.manualInput.label')}</label>
+                                    <input type="text" placeholder={t('reachOutPage.manualInput.placeholder')} value={manualAddress} onChange={e => setManualAddress(e.target.value)} className="address-input" onKeyPress={(e) => { if (e.key === 'Enter') { handleUseManualAddress(); }}} />
+                                </div>
+                                <button onClick={handleUseManualAddress} className="use-address-btn" disabled={isGeocoding || !manualAddress.trim()}>
+                                    {isGeocoding ? <><Loader size={16} className="loading-spinner" />{t('reachOutPage.manualInput.buttonLoading')}</> : <><Search size={16} />{t('reachOutPage.manualInput.button')}</>}
+                                </button>
+                            </div>
+                            <p className="address-hint">{t('reachOutPage.manualInput.hint')}</p>
+                        </div>
+                    )}
                 </div>
-                <button 
-                  onClick={handleUseManualAddress} 
-                  className="use-address-btn"
-                  disabled={isGeocoding || !manualAddress.trim()}
-                >
-                  {isGeocoding ? (
-                    <>
-                      <Loader size={16} className="loading-spinner" />
-                      Finding Location...
-                    </>
-                  ) : (
-                    <>
-                      <Search size={16} />
-                      Use This Address
-                    </>
-                  )}
-                </button>
-              </div>
-              <p className="address-hint">
-                💡 Enter your complete address including area, city, and pin code for better accuracy
-              </p>
+                {renderContent()}
             </div>
-          )}
-        </div>
-
-        {renderContent()}
-      </div>
 
       <style jsx>{`
         .reach-out-container {

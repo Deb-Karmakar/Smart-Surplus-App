@@ -5,8 +5,14 @@ const {
     registerVolunteer,
     getMyVolunteerProfile,
     updateVolunteerStatus,
-    getMyDeliveryTasks
+    getMyDeliveryTasks,
+    getAllVolunteers // <-- IMPORT THE NEW FUNCTION
 } = require('../controllers/volunteerController');
+
+// @route   GET /api/volunteers
+// @desc    Get all volunteers (Canteen Staff only)
+// @access  Private
+router.get('/', auth, getAllVolunteers); // <-- ADD THIS NEW ROUTE
 
 // @route   POST /api/volunteers/register
 router.post('/register', auth, registerVolunteer);
