@@ -182,11 +182,11 @@ const Chatbot = () => {
       const welcomeText = `Hi ${
         user ? user.name : "there"
       }! I'm ZeroBot. I can help you with questions about ZeroBite.`;
-      const suggestionText = `You can ask me things like:\n- How does a student claim food?\n- How does the AI Freshness Prediction work?\n- How do I volunteer?`;
+      // const suggestionText = `You can ask me things like:\n- How does a student claim food?\n- How does the AI Freshness Prediction work?\n- How do I volunteer?`;
 
       setMessages([
         { sender: "ai", text: welcomeText },
-        { sender: "ai", text: suggestionText },
+        // { sender: "ai", text: suggestionText },
       ]);
     }
   }, [isOpen, user, messages.length]);
